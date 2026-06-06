@@ -1,6 +1,6 @@
 ﻿#include <Windows.h>
 #include "GameWindow.h"
-
+//김성영의 원맨쇼
 int WINAPI wWinMain(
 	HINSTANCE hInstance,
 	HINSTANCE,
