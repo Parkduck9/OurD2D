@@ -1,6 +1,6 @@
 #pragma once
 #include <Windows.h>
-
+// 주석 체크용
 class GameWindow
 {
 public:
