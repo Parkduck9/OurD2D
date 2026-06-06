@@ -2,7 +2,7 @@
 #include <Windows.h>
 
 //김성영의 원맨쇼 2
-
+//김성영의 오운개발
 class GameWindow
 {
 public:
