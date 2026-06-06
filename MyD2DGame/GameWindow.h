@@ -1,6 +1,6 @@
 #pragma once
 #include <Windows.h>
-//±è¼º¿µÀÇ ¿ø¸Ç¼î
+//±è¼º¿µÀÇ ¿ø¸Ç¼î 2
 class GameWindow
 {
 public:
