@@ -13,37 +13,18 @@ bool GameWindow::Create(
 	this->m_hInstance = hInstance;
 	this->id = id;
 	this->inputManager = inputManager;
-
-	//const wchar_t* className = L"GameWindowClass";
-
-	//WNDCLASSEX wc = {};
-	//wc.cbSize = sizeof(WNDCLASSEX);
-	//wc.lpfnWndProc = GameWindow::StaticWndProc;
-	//wc.hInstance = hInstance;
-	//wc.lpszClassName = className;
-	//wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	//wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
-
-	//static bool registered = false;
-
-	//if (!registered)
-	//{
-	//	if (!RegisterClassEx(&wc))
-	//	{
-	//		return false;
-	//	}
-
-	//	registered = true;
-	//}
+	this->x = info.x;
+	this->y = info.y;
 
 	m_hwnd = CreateWindowEx(
-		0,  title,info.title.c_str(),
-		WS_POPUP | WS_BORDER | WS_DLGFRAME,
-		info.x, info.y,
-		info.width, info.height,
-		nullptr, nullptr,
-		hInstance, this
-	);
+							0,  title,info.title.c_str(),
+							WS_POPUP | WS_BORDER | WS_DLGFRAME,
+							info.x, info.y,
+							info.width, info.height,
+							nullptr, nullptr,
+							hInstance, this
+							);
+	
 	if (m_hwnd == nullptr) return false;
 	
 	ShowWindow(m_hwnd, SW_SHOW);
@@ -110,6 +91,55 @@ LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	}
 }
 
+void GameWindow::SetPosition(float x, float y)
+{
+
+}
+void GameWindow::MoveWindow(float dx, float dy)
+{
+	x += dx;
+	y += dy;
+
+	SetWindowPos(
+		m_hwnd, nullptr,
+		static_cast<int>(x),
+		static_cast<int>(y),
+		0, 0,
+		SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE
+	);
+}
+void GameWindow::ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRatio, double XRatio, double YRatio, bool flag)
+{
+	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+	MONITORINFO mi = {};
+	mi.cbSize = sizeof(MONITORINFO);
+
+	if (!GetMonitorInfo(hMonitor, &mi)) return;
+
+
+	RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
+
+	//모니터 (작업공간의 너비 높이) 구하기
+	int workWidth  = work.right  - work.left;
+	int workHeight = work.bottom - work.top ;
+
+	//모니터 작업공간의 (창의 너비, 높이) 구하기
+	int targetWidth = static_cast<int>(workWidth * widthRatio);
+	int targetHeight = static_cast<int>(workHeight * heightRatio);
+
+
+	int locationWidth = static_cast<int>(workWidth * XRatio);
+	int locationHeigh = static_cast<int>(workHeight * YRatio);
+
+	if (flag ==false)
+	{
+		locationWidth -= targetWidth / 2;
+		locationHeigh -= targetHeight / 2;
+	}
+
+	SetWindowPos(hwnd, nullptr, locationWidth, locationHeigh, targetWidth, targetHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+}
 //LRESULT CALLBACK GameWindow::StaticWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 //{
 //	GameWindow* window = nullptr;
@@ -138,35 +168,3 @@ LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 //}
 
 
-//void GameWindow::ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRatio, double XRatio, double YRatio, bool flag)
-//{
-//	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-//
-//	MONITORINFO mi = {};
-//	mi.cbSize = sizeof(MONITORINFO);
-//
-//	if (!GetMonitorInfo(hMonitor, &mi)) return;
-//
-//
-//	RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
-//
-//	//모니터 (작업공간의 너비 높이) 구하기
-//	int workWidth  = work.right  - work.left;
-//	int workHeight = work.bottom - work.top ;
-//
-//	//모니터 작업공간의 (창의 너비, 높이) 구하기
-//	int targetWidth = static_cast<int>(workWidth * widthRatio);
-//	int targetHeight = static_cast<int>(workHeight * heightRatio);
-//
-//
-//	int locationWidth = static_cast<int>(workWidth * XRatio);
-//	int locationHeigh = static_cast<int>(workHeight * YRatio);
-//
-//	if (flag ==false)
-//	{
-//		locationWidth -= targetWidth / 2;
-//		locationHeigh -= targetHeight / 2;
-//	}
-//
-//	SetWindowPos(hwnd, nullptr, locationWidth, locationHeigh, targetWidth, targetHeight, SWP_NOZORDER | SWP_NOACTIVATE);
-//}
