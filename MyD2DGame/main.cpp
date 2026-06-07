@@ -1,4 +1,4 @@
-#include "Engine.h"
+ï»¿#include "Engine.h"
 #include <Windows.h>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
@@ -7,7 +7,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
 	if (!BaseEngine.Initialize(hInstance))
 	{
-		MessageBoxW(nullptr, L"¿£Áø ½Ãµ¿ ½ÇÆĞ!", L"¿¡·¯!", MB_OK);
+		MessageBoxW(nullptr, L"ì—”ì§„ ì‹œë™ ì‹¤íŒ¨!", L"ì—ëŸ¬!", MB_OK);
 		return -1;
 	}
 

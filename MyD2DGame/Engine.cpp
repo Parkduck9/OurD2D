@@ -1,4 +1,4 @@
-#include "Engine.h"
+﻿#include "Engine.h"
 #include "GameContent.h"
 #include <chrono>
 
@@ -9,12 +9,12 @@
 
 bool Engine::Initialize(HINSTANCE hInstance)
 {
-	if (!windowManager.Initialize(hInstance))
+	if (!windowManager.Initialize(hInstance, inputManager))
 	{
 		return false;
 	}
 
-	context = std::make_unique<EngineContext>(windowManager);
+	context = std::make_unique<EngineContext>(windowManager, inputManager);
 
 	content = std::make_unique<GameContent>();
 	content->OnStart(*context);
@@ -52,7 +52,13 @@ void Engine::Run()
 		Render();
 	}
 }
-
+void Engine::Update(float deltaTime)
+{
+	if (content != nullptr && context != nullptr)
+	{
+		content->OnUpdate(*context, deltaTime);
+	}
+}
 void Engine::Shutdown()
 {
 	if (content != nullptr && context != nullptr)
@@ -64,13 +70,7 @@ void Engine::Shutdown()
 	context.reset();
 }
 
-void Engine::Update(float deltaTime)
-{
-	if (content != nullptr && context != nullptr)
-	{
-		content->OnUpdate(*context, deltaTime);
-	}
-}
+
 
 void Engine::Render()
 {

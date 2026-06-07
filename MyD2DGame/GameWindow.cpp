@@ -1,17 +1,18 @@
-#include "GameWindow.h"
-
-
+ï»¿#include "GameWindow.h"
+#include "InputManager.h"
 
 
 bool GameWindow::Create(
 						HINSTANCE hInstance,
 						const wchar_t* title,
 						int	id,
-						const WindowCreateInfo& info
+						const WindowCreateInfo& info,
+						InputManager* inputManager
 )
 {
-
+	this->m_hInstance = hInstance;
 	this->id = id;
+	this->inputManager = inputManager;
 
 	//const wchar_t* className = L"GameWindowClass";
 
@@ -67,6 +68,32 @@ int GameWindow::GetID() const
 	return id;
 }
 
+LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	if (inputManager != nullptr)
+	{
+		switch (message)
+		{
+		case WM_SETFOCUS:
+			inputManager->SetFocusedWindowId(id);
+			return 0;
+		case WM_KEYDOWN:
+			inputManager->SetKeyDown(id, static_cast<int>(wParam), true);
+			return 0;
+		case WM_KEYUP:
+			inputManager->SetKeyDown(id, static_cast<int>(wParam), false);
+			return 0;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+
+		default:
+			return DefWindowProcW(m_hwnd, message, wParam, lParam);
+		}
+	}
+
+}
+
 //LRESULT CALLBACK GameWindow::StaticWndProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 //{
 //	GameWindow* window = nullptr;
@@ -105,13 +132,13 @@ int GameWindow::GetID() const
 //	if (!GetMonitorInfo(hMonitor, &mi)) return;
 //
 //
-//	RECT work = mi.rcWork; //Åø¹Ù ÀÛ¾÷ Ç¥½ÃÁÙ µîµî Á¦¿ÜÇÑ ¿µ¿ª
+//	RECT work = mi.rcWork; //íˆ´ë°” ì‘ì—… í‘œì‹œì¤„ ë“±ë“± ì œì™¸í•œ ì˜ì—­
 //
-//	//¸ğ´ÏÅÍ (ÀÛ¾÷°ø°£ÀÇ ³Êºñ ³ôÀÌ) ±¸ÇÏ±â
+//	//ëª¨ë‹ˆí„° (ì‘ì—…ê³µê°„ì˜ ë„ˆë¹„ ë†’ì´) êµ¬í•˜ê¸°
 //	int workWidth  = work.right  - work.left;
 //	int workHeight = work.bottom - work.top ;
 //
-//	//¸ğ´ÏÅÍ ÀÛ¾÷°ø°£ÀÇ (Ã¢ÀÇ ³Êºñ, ³ôÀÌ) ±¸ÇÏ±â
+//	//ëª¨ë‹ˆí„° ì‘ì—…ê³µê°„ì˜ (ì°½ì˜ ë„ˆë¹„, ë†’ì´) êµ¬í•˜ê¸°
 //	int targetWidth = static_cast<int>(workWidth * widthRatio);
 //	int targetHeight = static_cast<int>(workHeight * heightRatio);
 //

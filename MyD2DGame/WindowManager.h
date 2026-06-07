@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Windows.h>
 #include <memory>
@@ -6,10 +6,12 @@
 
 #include "GameWindow.h"
 
+class InputManager;
+
 class WindowManager
 {
 public:
-	bool Initialize(HINSTANCE hInstance);
+	bool Initialize(HINSTANCE hInstance, InputManager& inputManager);
 	int CreateGameWindow(const WindowCreateInfo& info);
 	GameWindow* GetWindowById(int id);
 
@@ -23,6 +25,8 @@ private:
 
 	HINSTANCE hInstance = nullptr;
 	const wchar_t* className = L"WindowClass";
+
+	InputManager* inputManager = nullptr;
 
 	int nextWindowId = 1;
 	std::vector<std::unique_ptr<GameWindow>> windows;

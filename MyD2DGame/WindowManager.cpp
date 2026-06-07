@@ -1,8 +1,9 @@
-#include "WindowManager.h"
+﻿#include "WindowManager.h"
 
-bool WindowManager::Initialize(HINSTANCE hInstance)
+bool WindowManager::Initialize(HINSTANCE hInstance, InputManager& inputManager)
 {
 	this->hInstance = hInstance;
+	this->inputManager = &inputManager;
 
 	WNDCLASSW wc{};
 	wc.lpfnWndProc = WindowManager::WindowProc;
@@ -24,7 +25,7 @@ int WindowManager::CreateGameWindow(const WindowCreateInfo& info)
 	const int newId = nextWindowId++;
 	auto window = std::make_unique<GameWindow>();
 
-	if (!window->Create(hInstance, className, newId, info))
+	if (!window->Create(hInstance, className, newId, info, inputManager))
 	{
 		return -1;
 	}
@@ -54,13 +55,30 @@ LRESULT CALLBACK WindowManager::WindowProc(
 	LPARAM lParam
 )
 {
-	switch (message)
-	{
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+	GameWindow* window = nullptr;
 
-	default:
-		return DefWindowProcW(hwnd, message, wParam, lParam);
+	if (message == WM_NCCREATE)
+	{
+		CREATESTRUCTW* createStruct = reinterpret_cast<CREATESTRUCTW*>(lParam);
+		window = reinterpret_cast<GameWindow*>(createStruct->lpCreateParams);
+
+		SetWindowLongPtrW(
+			hwnd,
+			GWLP_USERDATA,
+			reinterpret_cast<LONG_PTR>(window)
+		);
 	}
+	else
+	{
+		window = reinterpret_cast<GameWindow*>(
+			GetWindowLongPtrW(hwnd, GWLP_USERDATA)
+			);
+	}
+
+	if (window != nullptr)
+	{
+		return window->HandleMessage(hwnd, message, wParam, lParam);
+	}
+		return DefWindowProcW(hwnd, message, wParam, lParam);
+	
 }

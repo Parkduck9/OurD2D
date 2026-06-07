@@ -48,6 +48,9 @@
     <ClCompile Include="GameContent.cpp">
       <Filter>Contents\소스파일</Filter>
     </ClCompile>
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="GameContent.h">
       <Filter>Contents\헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="InputManager.h">
+      <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
