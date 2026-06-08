@@ -72,6 +72,7 @@ public:
 	void ReSizeWindow(float WidthRatio , float HeightRatio );
 	void MoveWindow	(float XRatio, float YRatio, float Speed, float deltaTime);
 
+
 	void ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRaio, double XRatio, double YRatio);
 
 

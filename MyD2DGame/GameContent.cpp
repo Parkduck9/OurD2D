@@ -41,7 +41,19 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	}
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0.2,1.3,deltaTime);
+		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,1.3,deltaTime);
+	}
+	if (input.IsKeyPressed(mainWindowId, VK_SPACE))
+	{
+		windows.GetWindowById(mainWindowId)->MoveWindow(0, -40.0, 1 , deltaTime);
+	}
+	if (input.IsKeyPressed(mainWindowId, VK_SHIFT))
+	{
+		windows.GetWindowById(mainWindowId)->ReSizeWindow(0.1, 0.1);
+	}
+	if (input.IsKeyPressed(mainWindowId, VK_TAB))
+	{
+		windows.GetWindowById(mainWindowId)->ReSizeWindow(0.8, 0.8);
 	}
 }
 

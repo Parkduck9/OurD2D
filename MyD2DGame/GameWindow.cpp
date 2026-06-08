@@ -117,8 +117,21 @@ void GameWindow::ReSizeWindow(float WidthRatio, float HeightRatio)
 	int workWidth = work.right - work.left;
 	int workHeight = work.bottom - work.top;
 
+	//모니터 작업공간의 (창의 너비, 높이) 구하기
+	int targetWidth = static_cast<int>(workWidth * WidthRatio);
+	int targetHeight = static_cast<int>(workHeight * HeightRatio);
+
+	x = x + width / 2;
+	y = y + height / 2;
+
+	x = x - targetWidth / 2;
+	y = y - targetHeight / 2;
+
+
+	SetWindowPos(m_hwnd, nullptr, x, y, targetWidth, targetHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 
 }
+
 void GameWindow::MoveWindow(float XRatio, float YRatio, float Speed, float deltaTime)
 {
 
