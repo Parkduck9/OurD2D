@@ -13,8 +13,8 @@ void GameContent::OnStart(EngineContext& engine)
 	int mainWindow = windows.CreateGameWindow(
 		{
 			L"Main Window",
-			100, 100,
-			500, 400
+			0.5, 0.5,
+			0.5, 0.5
 		}
 	);
 
@@ -33,10 +33,15 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		int mainWindow = windows.CreateGameWindow(
 			{
 				L"Add Window",
-				200, 1000,
-				500, 400
+				a, b,
+				0.2, 0.2
 			}
 		);
+		a += 0.01; b += 0.01;
+	}
+	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
+	{
+		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0.2,deltaTime);
 	}
 }
 
