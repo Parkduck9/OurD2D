@@ -41,7 +41,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	}
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0.2,deltaTime);
+		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0.2,1.3,deltaTime);
 	}
 }
 

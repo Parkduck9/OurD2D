@@ -69,8 +69,9 @@ public:
 
 	LRESULT HandleMessage(HWND hwnd,UINT message, WPARAM wParam, LPARAM lParam);
 
-	void SetPosition(float x , float y );
-	void MoveWindow	(float XRatio, float YRatio, float deltaTime);
+	void ReSizeWindow(float WidthRatio , float HeightRatio );
+	void MoveWindow	(float XRatio, float YRatio, float Speed, float deltaTime);
+
 	void ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRaio, double XRatio, double YRatio);
 
 

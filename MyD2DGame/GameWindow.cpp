@@ -84,7 +84,7 @@ LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 		}
 		return 0;
 
-	case WM_MOVE:
+	case WM_MOVE://플레이어가 직접 움직일때에만 좌표갱신
 		if (!isMovingByCode)
 		{
 			UpdateRect();
@@ -101,11 +101,25 @@ LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	}
 }
 
-void GameWindow::SetPosition(float x, float y)
+void GameWindow::ReSizeWindow(float WidthRatio, float HeightRatio)
 {
+	HMONITOR hMonitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+
+	MONITORINFO mi = {};
+	mi.cbSize = sizeof(MONITORINFO);
+
+	if (!GetMonitorInfo(hMonitor, &mi)) return;
+
+
+	RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
+
+	//모니터 (작업공간의 너비 높이) 구하기
+	int workWidth = work.right - work.left;
+	int workHeight = work.bottom - work.top;
+
 
 }
-void GameWindow::MoveWindow(float XRatio, float YRatio, float deltaTime)
+void GameWindow::MoveWindow(float XRatio, float YRatio, float Speed, float deltaTime)
 {
 
 	HMONITOR hMonitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
@@ -127,8 +141,8 @@ void GameWindow::MoveWindow(float XRatio, float YRatio, float deltaTime)
 
 	float locationWidth =(workWidth * XRatio);// - width / 2;
 	float locationHeight =(workHeight * YRatio);// - height / 2;
-	x += locationWidth * deltaTime;
-	y += locationHeight* deltaTime;
+	x += locationWidth * Speed*deltaTime;
+	y += locationHeight* Speed * deltaTime;
 
 	isMovingByCode = true;
 	SetWindowPos(m_hwnd, nullptr, static_cast<int>(x), static_cast<int>(y), 0, 0, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
@@ -170,5 +184,8 @@ void GameWindow::UpdateRect()
 	{
 		x = rect.left;
 		y = rect.top;
+
+		width  = rect.right  -  rect.left;
+		height = rect.bottom -  rect.top;
 	}
 }
