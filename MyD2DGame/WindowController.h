@@ -13,7 +13,7 @@ public:
 	void CreateEnemyStartField();
 	void CreateEnemyStartRegion();
 
-	void MoveRegion();
+	void MovePlayerRegion(float deltatime);
 	void ResizeField();
 
 private:
@@ -22,4 +22,8 @@ private:
 	int playerRegionId = -1;
 	int enemyFieldId = -1;
 	int enemyRegionId = -1;
+
+
+	float x = 0;
+	float y = 0;
 };
