@@ -50,7 +50,10 @@ void Engine::Run()
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
 		}
-
+		if (!isRunning)
+		{
+			break;
+		}
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed = currentTime - previousTime;
 		previousTime = currentTime;
@@ -76,12 +79,12 @@ void Engine::Shutdown()
 	{
 		content->OnEnd(*context);
 	}
-	
+	content.reset();
 	d2dManager.Shutdown();
 	wicManager.Shutdown();
 	
 
-	content.reset();
+	
 	context.reset();
 }
 

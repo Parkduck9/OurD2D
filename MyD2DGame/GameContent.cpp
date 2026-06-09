@@ -8,6 +8,12 @@
 
 #include <Windows.h>
 
+//임시 파일//
+#include<mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+///////////
+
+
 void GameContent::OnStart(EngineContext& engine)
 {
 	auto& windows = engine.GetWindowManager();
@@ -22,7 +28,10 @@ void GameContent::OnStart(EngineContext& engine)
 			0.3, 0.3
 		}
 	);
+
 	this->mainWindowId = mainWindowId;
+
+
 	GameWindow* mainWindow = windows.GetWindowById(mainWindowId);
 	if (mainWindow == nullptr) return;
 	
@@ -68,7 +77,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 				0.2, 0.2
 			}
 		);
-		{
+		
 			a += 0.01; b += 0.01;
 			HMONITOR hMonitor = MonitorFromPoint({ 0,0 }, MONITOR_DEFAULTTONEAREST);
 
@@ -86,12 +95,14 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 				b = 0.3f;
 			}
 			
-		}
+		
 
 	}
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
 		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
+		
+		PlayerHitSound();
 	}
 	if (input.IsKeyDown(mainWindowId, VK_LEFT))
 	{
@@ -105,10 +116,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	{
 		windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
 	}
-	//if (input.IsKeyPressed(mainWindowId, VK_SPACE))
-	//{
-	//	windows.GetWindowById(mainWindowId)->MoveWindow(0, -40.0, 1 , deltaTime);
-	//}
 
 }
 
@@ -125,7 +132,7 @@ void GameContent::OnRender(EngineContext& engine)
 
 	d2d.Clear(mainWindowId, D2D1::ColorF(D2D1::ColorF::White));
 
-	d2d.DrawBitmap(mainWindowId, testBitmap.Get(), D2D1::RectF(0.0f, 0.0f, 300.0f, 300.0f));
+	d2d.DrawBitmap(mainWindowId, testBitmap.Get(), D2D1::RectF(0.0f, 0.0f, 800.0f, 500.0f));
 
 	HRESULT hr = d2d.EndDraw(mainWindowId);
 
@@ -137,5 +144,5 @@ void GameContent::OnRender(EngineContext& engine)
 
 void GameContent::OnEnd(EngineContext& engine)
 {
-
+	testBitmap.Reset();
 }

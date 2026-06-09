@@ -16,5 +16,12 @@ public:
 private:
 	int mainWindowId = -1;
 	Microsoft::WRL::ComPtr<ID2D1Bitmap> testBitmap;
-	float a = 0.1f, b = 0.1f;//그냥 임시로 창생성 보려고 만든거 나중에 삭제할거임!
+
+	//임시파일(삭제예정)
+	float a = 0.1f, b = 0.1f;
+	void PlayerHitSound()
+	{
+		PlaySound(L"../Resource/Shock The World.wav", nullptr, SND_FILENAME | SND_ASYNC);
+	}
+
 };
