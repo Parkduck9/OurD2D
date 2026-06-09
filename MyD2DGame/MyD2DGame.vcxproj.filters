@@ -51,6 +51,15 @@
     <ClCompile Include="InputManager.cpp">
       <Filter>Engine\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="D2DManager.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="WicManager.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -72,6 +81,18 @@
       <Filter>Contents\헤더파일</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="D2DManager.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteAnimation.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WicManager.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
