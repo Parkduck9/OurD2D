@@ -63,8 +63,11 @@ public:
 		const WindowCreateInfo& info, // 창 정보 구조체
 		InputManager* inputManager
 	);
-	HWND GetHwnd() const;
-	int  GetID()   const;
+	HWND  GetHwnd() const;
+	int   GetID()   const;
+	float GetX()	const;
+	float GetY()	const;
+
 	void UpdateRect();
 
 	LRESULT HandleMessage(HWND hwnd,UINT message, WPARAM wParam, LPARAM lParam);
