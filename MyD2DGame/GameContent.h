@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Content.h"
+#include "SpriteAnimation.h"
 #include <d2d1.h>
 #include<wrl/client.h>
 
@@ -23,5 +24,9 @@ private:
 	{
 		PlaySound(L"../Resource/Shock The World.wav", nullptr, SND_FILENAME | SND_ASYNC);
 	}
+	SpriteAnimation playerAnimation;
+
+	float playerX = 100.0f;
+	float playerY = 100.0f;
 
 };

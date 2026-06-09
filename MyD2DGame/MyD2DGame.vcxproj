@@ -143,6 +143,7 @@
     <ClInclude Include="GameContent.h" />
     <ClInclude Include="GameWindow.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="SpriteAnimation.h" />
     <ClInclude Include="WicManager.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>

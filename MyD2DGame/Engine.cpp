@@ -21,7 +21,7 @@ bool Engine::Initialize(HINSTANCE hInstance)
 	{
 		return false;
 	}
-
+	
 
 	context = std::make_unique<EngineContext>(windowManager, inputManager, wicManager, d2dManager);
 

@@ -6,6 +6,8 @@
 #include "WicManager.h"
 #include "D2DManager.h"
 
+
+
 #include <Windows.h>
 
 //임시 파일//
@@ -25,7 +27,7 @@ void GameContent::OnStart(EngineContext& engine)
 		{
 			L"Main Window",
 			0.5, 0.5,
-			0.3, 0.3
+			0.5, 0.5
 		}
 	);
 
@@ -47,7 +49,7 @@ void GameContent::OnStart(EngineContext& engine)
 
 	Microsoft::WRL::ComPtr<IWICBitmapSource> source;
 
-	hr = wic.LoadImageSource(L"../Resource/알아.png", source);
+	hr = wic.LoadImageSource(L"../Resource/도로롱.png", source);
 
 	if (FAILED(hr)) return;
 
@@ -62,6 +64,9 @@ void GameContent::OnStart(EngineContext& engine)
 		return;
 	}
 	
+
+	playerAnimation.Initialize(200, 200, 60, 8,30.0f);
+
 }
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
@@ -117,6 +122,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
 	}
 
+	playerAnimation.Update(deltaTime);
 }
 
 void GameContent::OnRender(EngineContext& engine)
@@ -132,7 +138,24 @@ void GameContent::OnRender(EngineContext& engine)
 
 	d2d.Clear(mainWindowId, D2D1::ColorF(D2D1::ColorF::White));
 
-	d2d.DrawBitmap(mainWindowId, testBitmap.Get(), D2D1::RectF(0.0f, 0.0f, 800.0f, 500.0f));
+	//d2d.DrawBitmap(mainWindowId, testBitmap.Get(), D2D1::RectF(0.0f, 0.0f, 800.0f, 500.0f));
+
+	D2D1_RECT_F sourceRect = playerAnimation.GetSourceRect();
+
+	D2D1_RECT_F destRect = D2D1::RectF(
+		playerX,
+		playerY,
+		playerX + 128.0f,
+		playerY + 128.0f
+	);
+
+	d2d.DrawBitmapFrame(
+		mainWindowId,
+		testBitmap.Get(),
+		destRect,
+		sourceRect
+	);
+
 
 	HRESULT hr = d2d.EndDraw(mainWindowId);
 
@@ -140,6 +163,9 @@ void GameContent::OnRender(EngineContext& engine)
 	{
 		testBitmap.Reset();
 	}
+
+
+	
 }
 
 void GameContent::OnEnd(EngineContext& engine)
