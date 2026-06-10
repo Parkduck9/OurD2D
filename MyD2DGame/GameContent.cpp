@@ -51,7 +51,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 	switch (state) {
 	case BattleState::Explore:
+		
 		player.MovePlayerRegion(deltaTime);
+
+		player.DefaultFieldSystem(deltaTime);
+		enemy.DefaultFieldSystem(deltaTime);
 
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
@@ -75,7 +79,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		}
 		break;
 
-		//player.ResizeField();
 	}
 
 	/*

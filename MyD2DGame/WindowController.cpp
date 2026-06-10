@@ -108,21 +108,6 @@ void WindowController::MovePlayerRegion(float deltaTime)
 }
 
 
-void WindowController::ResizeField()
-{
-    auto& input = context->GetInputManager();
-    auto& windows = context->GetWindowManager();
-
-    if (input.IsKeyPressed(playerRegionId, VK_SHIFT))
-    {
-        windows.GetWindowById(playerRegionId)->ReSizeWindow(0.1, 0.1);
-    }
-    if (input.IsKeyPressed(playerRegionId, VK_TAB))
-    {
-        windows.GetWindowById(playerRegionId)->ReSizeWindow(0.8, 0.8);
-    }
-}
-
 void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -155,6 +140,7 @@ bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
     return playerArrived && enemyArrived; // 둘다 True여야 return 1 되도록 설정
 }
 
+
 void WindowController::MoveToward(int windowId, float targetX, float targetY, float speed, float deltaTime)
 {
     auto& windows = context->GetWindowManager();
@@ -175,4 +161,38 @@ void WindowController::MoveToward(int windowId, float targetX, float targetY, fl
     int workHeight = mi.rcWork.bottom - mi.rcWork.top;
 
     wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
+}
+
+void WindowController::DefaultFieldSystem(float deltaTime)
+{
+    fixedFieldTime += deltaTime;
+
+    if (fixedFieldTime >= 1.0f)
+    {
+        if (playerFieldId != -1) PlayerResizeField(deltaTime);
+        if (enemyFieldId != -1) EnemyResizeField(deltaTime);
+        fixedFieldTime = 0.0f;
+    }
+}
+
+void WindowController::PlayerResizeField(float deltaTime)
+{
+    auto& windows = context->GetWindowManager();
+    auto* fieldWnd = windows.GetWindowById(playerFieldId);
+    if (fieldWnd == nullptr) return;
+
+    fieldHeightRatio -= 0.001f;
+    fieldWnd->ReSizeWindow(fieldWidthRatio, fieldHeightRatio);
+    fieldWnd->MoveWindow(0.000f, 0.0005f, 1.0f, 1.0f); // 아래로
+}
+
+void WindowController::EnemyResizeField(float deltaTime)
+{
+    auto& windows = context->GetWindowManager();
+    auto* fieldWnd = windows.GetWindowById(enemyFieldId);
+    if (fieldWnd == nullptr) return;
+
+    fieldHeightRatio += 0.001f;
+    fieldWnd->ReSizeWindow(fieldWidthRatio, fieldHeightRatio);
+    fieldWnd->MoveWindow(0.0000f, 0.0005f, 1.0f, 1.0f); // 위로
 }
