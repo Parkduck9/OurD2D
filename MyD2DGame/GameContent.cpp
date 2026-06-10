@@ -26,54 +26,16 @@ void GameContent::OnStart(EngineContext& engine)
 
 
 
-	int mainWindowId = windows.CreateGameWindow(
-		{
-			L"Main Window",
-			0.5, 0.5,
-			0.5, 0.5,
-			true
-		}
-	);
-
-	this->mainWindowId = mainWindowId;
-
-
-	GameWindow* mainWindow = windows.GetWindowById(mainWindowId);
-	if (mainWindow == nullptr) return;
-	//렌더타겟 생성
-	HRESULT hr = d2d.CreateRenderTargetForWindow(
-		mainWindowId,
-		mainWindow->GetHwnd()
-	);
-	player.CreatePlayerStartField();
-	player.CreatePlayerStartRegion();
-	// 플레이어 지역, 필드 창 생성
-
-	if (FAILED(hr))
-	{
-		return;
-	}
-
 	Microsoft::WRL::ComPtr<IWICBitmapSource> source;
 
 
-	auto player = std::make_unique<Actor>(mainWindowId);
-	player->SetPosition(100.f, 100.0f);
-	player->SetSize(128.0f, 128.0f);
-
-	//이미지, 애니메이션 등록(애니메이션 추가 등록은 추후 예정)
-	player->InitializeSprite(engine, L"../Resource/도로롱.png", 100.0f, 100.0f, 128.0f, 128.0f);
-	//player->AddAnimation(L"idle",200, 200, 60, 8, 30.0f);
-	//player->InitializeSprite(engine, L"../Resource/도로롱_걷기.png", 100.0f, 100.0f, 128.0f, 128.0f);
-	//player->AddAnimation(L"walk", 176, 176, 8, 8, 30.0f);
-
-	playerActor = player.get();
-	actors.push_back(std::move(player));
-
-
 	enemy.CreateEnemyStartField();
+	player.CreatePlayerStartField();
+	// 적, 플레이어 필드 우선 생성 (아니면 창 아래로 들어가서 문제 생김)
+
 	enemy.CreateEnemyStartRegion();
-	// 적 지역, 필드 창 생성
+	player.CreatePlayerStartRegion();
+	// 플레이어, 적 지역 우선 생성 ( 제일 위로 올리기 위해서 )
 
 	player.SaveStartPositions(enemy.GetEnemyRegionId()); 
 	// 시작 위치 저장
@@ -83,7 +45,6 @@ void GameContent::OnStart(EngineContext& engine)
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
-
 
 	//테스트용 
 
@@ -117,64 +78,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		//player.ResizeField();
 	}
 
-	auto& windows = engine.GetWindowManager();
-
-	if (input.IsKeyPressed(mainWindowId, VK_SPACE))
-	{
-		int mainWindow = windows.CreateGameWindow(
-			{
-				L"Add Window",
-				a, b,
-				0.2, 0.2,
-				false
-			}
-		);
-		
-			a += 0.01; b += 0.01;
-			HMONITOR hMonitor = MonitorFromPoint({ 0,0 }, MONITOR_DEFAULTTONEAREST);
-
-			MONITORINFO mi = {};
-			mi.cbSize = sizeof(MONITORINFO);
-
-			if (!GetMonitorInfo(hMonitor, &mi)) return;
-
-
-			RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
-
-			if (work.bottom < b)
-			{
-				a = 0.3f;
-				b = 0.3f;
-			}
-	}
-	if (input.IsKeyPressed(mainWindowId, VK_TAB))
-	{
-		int subWindow = windows.CreateGameWindow(
-			{
-				L"Add Window",
-				a+0.3f, b,
-				0.2, 0.2,
-				true
-			}
-		);
-
-		a += 0.01; b += 0.01;
-		HMONITOR hMonitor = MonitorFromPoint({ 0,0 }, MONITOR_DEFAULTTONEAREST);
-
-		MONITORINFO mi = {};
-		mi.cbSize = sizeof(MONITORINFO);
-
-		if (!GetMonitorInfo(hMonitor, &mi)) return;
-
-
-		RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
-
-		if (work.bottom < b)
-		{
-			a = 0.3f;
-			b = 0.3f;
-		}
-	}
+	/*
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
 		//windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
@@ -200,7 +104,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		//windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
 		playerActor->PlayAnimation(L"idle");
 	}
-
+	*/
 
 	for (auto& actor : actors)
 	{
@@ -263,9 +167,6 @@ void GameContent::OnRender(EngineContext& engine)
 	}
 
 
-	
-	player.MovePlayerRegion(deltaTime);
-	player.ResizeField();
 
 }
 

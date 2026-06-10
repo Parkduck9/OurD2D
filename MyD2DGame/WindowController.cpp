@@ -28,20 +28,8 @@ void WindowController::CreatePlayerStartField() // 플레이어 필드
     playerFieldId = windows.CreateGameWindow({ 
         L"Player Field",
         0.5, 0.75,
-        1.0, 0.5
+        1.007, 0.508, false
         });
-}
-void WindowController::CreatePlayerStartRegion()
-{
-    auto& windows = context->GetWindowManager();
-
-    playerRegionId = windows.CreateGameWindow( // 플레이어 지역
-        {
-            L"Main Window",
-            0.5, 0.8,
-            0.1, 0.15
-        }
-    );
 }
 
 void WindowController::CreateEnemyStartField() // 적 필드
@@ -50,9 +38,24 @@ void WindowController::CreateEnemyStartField() // 적 필드
     enemyFieldId = windows.CreateGameWindow({
         L"Enemy Field",
         0.5, 0.25,
-        1.0, 0.5
+        1.007,  0.508 , false
         });
 }
+
+void WindowController::CreatePlayerStartRegion()
+{
+    auto& windows = context->GetWindowManager();
+
+    playerRegionId = windows.CreateGameWindow( // 플레이어 지역
+        {
+            L"Main Window",
+            0.5, 0.8,
+            0.1, 0.15 , true
+        }
+    );
+}
+
+
 void WindowController::CreateEnemyStartRegion()
 {
     auto& windows = context->GetWindowManager();
@@ -60,7 +63,7 @@ void WindowController::CreateEnemyStartRegion()
         {
             L"Main Window",
             0.5, 0.2,
-            0.1, 0.15
+            0.1, 0.15 , false
         }
     );
 }
