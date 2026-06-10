@@ -9,6 +9,18 @@ void WindowController::Initalize(EngineContext &engine)
 	context = &engine;
 }
 
+void WindowController::SaveStartPositions(int enemyRegionId)
+{
+    auto& windows = context->GetWindowManager();
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+
+    playerStartX = playerWnd->GetX();
+    playerStartY = playerWnd->GetY();
+    enemyStartX = enemyWnd->GetX();
+    enemyStartY = enemyWnd->GetY();
+    // 처음 위치 픽셀 값 받기
+} 
 
 void WindowController::CreatePlayerStartField() // 플레이어 필드
 {
@@ -111,27 +123,47 @@ void WindowController::ResizeField()
 void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
-
     auto* playerWnd = windows.GetWindowById(playerRegionId);
     auto* enemyWnd = windows.GetWindowById(enemyRegionId);
-
     if (playerWnd == nullptr || enemyWnd == nullptr) return;
 
-    // 목표 위치 (적 region 시작 위치)
-    float targetX = enemyWnd->GetX();
-    float targetY = enemyWnd->GetY();
+    MoveToward(playerRegionId, enemyStartX, enemyStartY, 3.0f, deltaTime);
+    MoveToward(enemyRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
+}
 
-    float currentX = playerWnd->GetX();
-    float currentY = playerWnd->GetY();
 
-    float diffX = targetX - currentX;
-    float diffY = targetY - currentY;
+bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
+{
+    auto& windows = context->GetWindowManager();
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+    if (playerWnd == nullptr || enemyWnd == nullptr) return false;
 
-    // 목표 위치에 충분히 가까우면 멈춤
-    if (abs(diffX) < 5.0f && abs(diffY) < 5.0f) return;
+    MoveToward(playerRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
+    MoveToward(enemyRegionId, enemyStartX, enemyStartY, 3.0f, deltaTime);
 
-    // 방향 계산해서 이동
-    HMONITOR hMonitor = MonitorFromWindow(playerWnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);
+    // 둘 다 도착했으면 true 반환
+    bool playerArrived = abs(playerStartX - playerWnd->GetX()) 
+        <= 5.0f && abs(playerStartY - playerWnd->GetY()) <= 5.0f;
+
+    bool enemyArrived = abs(enemyStartX - enemyWnd->GetX()) 
+        <= 5.0f && abs(enemyStartY - enemyWnd->GetY()) <= 5.0f;
+
+    return playerArrived && enemyArrived;
+}
+
+void WindowController::MoveToward(int windowId, float targetX, float targetY, float speed, float deltaTime)
+{
+    auto& windows = context->GetWindowManager();
+    auto* wnd = windows.GetWindowById(windowId);
+    if (wnd == nullptr) return;
+
+    float dirX = targetX - wnd->GetX();  // windowId -> wnd
+    float dirY = targetY - wnd->GetY();  // windowId -> wnd
+
+    if (abs(dirX) <= 5.0f && abs(dirY) <= 5.0f) return;
+
+    HMONITOR hMonitor = MonitorFromWindow(wnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);  // windowId -> wnd
     MONITORINFO mi = {};
     mi.cbSize = sizeof(MONITORINFO);
     if (!GetMonitorInfo(hMonitor, &mi)) return;
@@ -139,13 +171,5 @@ void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
     int workWidth = mi.rcWork.right - mi.rcWork.left;
     int workHeight = mi.rcWork.bottom - mi.rcWork.top;
 
-    float ratioX = diffX / workWidth;
-    float ratioY = diffY / workHeight;
-
-    playerWnd->MoveWindow(ratioX, ratioY, 3.0f, deltaTime);
-}
-
-void WindowController::ResetExplore()
-{
-    battleRegionCompareY = 0.0f;
+    wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
 }
