@@ -149,7 +149,7 @@ bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
     bool enemyArrived = abs(enemyStartX - enemyWnd->GetX()) 
         <= 5.0f && abs(enemyStartY - enemyWnd->GetY()) <= 5.0f;
 
-    return playerArrived && enemyArrived;
+    return playerArrived && enemyArrived; // 둘다 True여야 return 1 되도록 설정
 }
 
 void WindowController::MoveToward(int windowId, float targetX, float targetY, float speed, float deltaTime)
