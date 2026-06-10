@@ -1,5 +1,8 @@
 #include "Actor.h"
 #include "D2DManager.h"
+#include "EngineContext.h"
+#include "WicManager.h"
+
 
 Actor::Actor(int windowId) : windowId(windowId) {}
 
@@ -41,9 +44,56 @@ void Actor::ResetBitmap()
 	bitmap.Reset();
 }
 
+bool Actor::InitializeSprite(EngineContext& engine, const std::wstring& filePath, float x, float y, float width, float height)
+{
+	SetPosition(x, y);
+	SetSize(width, height);
+
+	Microsoft::WRL::ComPtr<IWICBitmapSource> source;
+
+	HRESULT hr = engine.GetWicManager().LoadImageSource(filePath, source);
+	if (FAILED(hr)) return false;
+
+	hr = engine.GetD2DManager().CreateBitmapFromWicSource(windowId, source.Get(), bitmap);
+
+	return SUCCEEDED(hr);
+}
+
+void Actor::AddAnimation(const std::wstring& name, int frameWidth, int frameHeight, int frameCount, int columns, float framesPerSecond)
+{
+	SpriteAnimation animation;
+	animation.Initialize(frameWidth, frameHeight, frameCount, columns, framesPerSecond);
+
+	animations[name] = animation;
+
+	if (currentAnimation == nullptr)
+	{
+		currentAnimation = &animations[name];
+	}
+
+	hasAnimation = true;
+}
+void Actor::PlayAnimation(const std::wstring & name)
+{
+	auto iter = animations.find(name);
+	if (iter == animations.end())
+	{
+		return;
+	}
+	if (currentAnimation == &iter->second)
+	{
+		return;
+	}
+
+	currentAnimation = &iter->second;
+}
+
 void Actor::Update(float deltaTime)
 {
-	//나중에 애니메이션같은거 추가할때 코드 추가할것같음!
+	if (currentAnimation != nullptr)
+	{
+		currentAnimation->Update(deltaTime);
+	}
 }
 
 void Actor::Render(D2DManager& d2d) const
@@ -55,7 +105,16 @@ void Actor::Render(D2DManager& d2d) const
 
 	D2D1_RECT_F destinationRect = GetDestinationRect();
 
-	d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect);
+
+
+	if (currentAnimation != nullptr)//애니메이션 있을 때
+	{
+		d2d.DrawBitmapFrame(windowId, bitmap.Get(), destinationRect,currentAnimation->GetSourceRect());
+	}
+	else
+	{
+		d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect);
+	}
 }
 
 D2D1_RECT_F Actor::GetDestinationRect() const

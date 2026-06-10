@@ -21,15 +21,11 @@ public:
 
 private:
 	int mainWindowId = -1;
-	Microsoft::WRL::ComPtr<ID2D1Bitmap> testBitmap;
+
 
 	//오디오, 비트맵 임시 변수(삭제예정)
 	float a = 0.1f, b = 0.1f;
 
-	SpriteAnimation playerAnimation;
-
-	float playerX = 100.0f;
-	float playerY = 100.0f;
 	
 	void PlayerHitSound();
 
