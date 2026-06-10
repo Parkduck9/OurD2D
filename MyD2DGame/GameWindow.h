@@ -65,10 +65,13 @@ public:
 		const WindowCreateInfo& info, // 창 정보 구조체
 		InputManager* inputManager
 	);
-	HWND  GetHwnd() const;
-	int   GetID()   const;
-	float GetX()	const;
-	float GetY()	const;
+	HWND  GetHwnd()   const;
+	int   GetID()     const;
+	float GetX()	  const;
+	float GetY()	  const;
+	float GetWidth()  const;
+	float GetHeight() const;
+
 
 	void UpdateRect();
 
