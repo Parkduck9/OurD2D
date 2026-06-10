@@ -1,11 +1,10 @@
 ﻿#include "GameContent.h"
 #include "EngineContext.h"
 #include "WindowManager.h"
+
 #include "InputManager.h"
 #include "WicManager.h"
 #include "D2DManager.h"
-
-
 
 #include <Windows.h>
 
@@ -19,9 +18,12 @@ void GameContent::OnStart(EngineContext& engine)
 {
 	player.Initalize(engine);
 	enemy.Initalize(engine);
+
+	// 플레이어와 적 객체 생성
+
 	auto& windows = engine.GetWindowManager();
 	auto& d2d = engine.GetD2DManager();
-	// 플레이어와 적 객체 생성
+
 
 
 	int mainWindowId = windows.CreateGameWindow(
@@ -81,6 +83,40 @@ void GameContent::OnStart(EngineContext& engine)
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
+
+
+	//테스트용 
+
+
+	switch (state) {
+	case BattleState::Explore:
+		player.MovePlayerRegion(deltaTime);
+
+		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
+		{
+			state = BattleState::Battle;
+		}
+
+		break;
+
+	case BattleState::Battle:
+		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
+		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
+		{
+			state = BattleState::Return;
+		}
+		break;
+
+	case BattleState::Return:
+		if (player.BattleEndRegion(deltaTime, enemy.GetEnemyRegionId()))
+		{
+			state = BattleState::Explore;
+		}
+		break;
+
+		//player.ResizeField();
+	}
+
 	auto& windows = engine.GetWindowManager();
 
 	if (input.IsKeyPressed(mainWindowId, VK_SPACE))
@@ -230,39 +266,7 @@ void GameContent::OnRender(EngineContext& engine)
 	
 	player.MovePlayerRegion(deltaTime);
 	player.ResizeField();
-	auto& input = engine.GetInputManager();
 
-	//테스트용 
-
-
-	switch (state) {
-	case BattleState::Explore:
-		player.MovePlayerRegion(deltaTime);
-
-		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
-		{
-			state = BattleState::Battle;
-		}
-
-		break;
-
-	case BattleState::Battle:
-		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
-		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
-		{
-			state = BattleState::Return;
-		}
-		break;
-
-	case BattleState::Return:
-		if (player.BattleEndRegion(deltaTime, enemy.GetEnemyRegionId()))
-		{
-			state = BattleState::Explore;
-		}
-		break;
-
-		//player.ResizeField();
-	}
 }
 
 void GameContent::OnEnd(EngineContext& engine)
