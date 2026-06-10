@@ -29,7 +29,18 @@ bool GameWindow::Create(
 	
 	if (m_hwnd == nullptr) return false;
 	
-	ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);//생성된 창에 포커싱 안 뺏기게
+	if (info.focusOnCreate == true)
+	{
+		ShowWindow(m_hwnd, SW_SHOW);
+		SetForegroundWindow(m_hwnd);
+		SetFocus(m_hwnd);
+	}
+	else
+	{
+		ShowWindow(m_hwnd, SW_SHOWNOACTIVATE);//생성된 창에 포커싱 안 뺏기게
+	}
+
+	
 	UpdateWindow(m_hwnd);
 
 	return true;

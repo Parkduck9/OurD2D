@@ -8,12 +8,14 @@ class InputManager;
 struct WindowCreateInfo
 {
 
-	WindowCreateInfo(std::wstring title, float XRatio, float YRatio, float WidthRatio, float HeightRatio)
+	WindowCreateInfo(std::wstring title, float XRatio, float YRatio, float WidthRatio, float HeightRatio, bool focusOnCreate)
 	{
 		this->title = title;
 		RatioToPoint(XRatio, YRatio, WidthRatio, HeightRatio);
+		this->focusOnCreate = focusOnCreate;
 	}
 
+	bool focusOnCreate = false;//창생성시 포커싱여부
 
 	std::wstring title = L"Default Window";
 

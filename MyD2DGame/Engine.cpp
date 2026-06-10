@@ -13,8 +13,17 @@ bool Engine::Initialize(HINSTANCE hInstance)
 	{
 		return false;
 	}
+	if (!wicManager.Initialize())
+	{
+		return false;
+	}
+	if (!d2dManager.Initialize())
+	{
+		return false;
+	}
+	
 
-	context = std::make_unique<EngineContext>(windowManager, inputManager);
+	context = std::make_unique<EngineContext>(windowManager, inputManager, wicManager, d2dManager);
 
 	content = std::make_unique<GameContent>();
 	content->OnStart(*context);
@@ -41,7 +50,10 @@ void Engine::Run()
 			TranslateMessage(&msg);
 			DispatchMessageW(&msg);
 		}
-
+		if (!isRunning)
+		{
+			break;
+		}
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed = currentTime - previousTime;
 		previousTime = currentTime;
@@ -67,8 +79,12 @@ void Engine::Shutdown()
 	{
 		content->OnEnd(*context);
 	}
-
 	content.reset();
+	d2dManager.Shutdown();
+	wicManager.Shutdown();
+	
+
+	
 	context.reset();
 }
 
@@ -76,5 +92,8 @@ void Engine::Shutdown()
 
 void Engine::Render()
 {
-
+	if (content != nullptr && context != nullptr)
+	{
+		content->OnRender(*context);
+	}
 }

@@ -4,7 +4,8 @@
 
 #include "WindowManager.h"
 #include "InputManager.h"
-
+#include "WicManager.h"
+#include "D2DManager.h"
 
 #include "EngineContext.h"
 #include "Content.h"
@@ -28,6 +29,10 @@ private:
 
 	WindowManager windowManager;
 	InputManager  inputManager;
+	WicManager	  wicManager;
+	D2DManager	  d2dManager;
+
+
 	std::unique_ptr<EngineContext> context;
 	std::unique_ptr<Content> content;
 };
