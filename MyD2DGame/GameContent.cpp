@@ -27,7 +27,8 @@ void GameContent::OnStart(EngineContext& engine)
 		{
 			L"Main Window",
 			0.5, 0.5,
-			0.5, 0.5
+			0.5, 0.5,
+			true
 		}
 	);
 
@@ -67,6 +68,15 @@ void GameContent::OnStart(EngineContext& engine)
 
 	playerAnimation.Initialize(200, 200, 60, 8,30.0f);
 
+	auto player = std::make_unique<Actor>(mainWindowId);
+	player->SetBitmap(testBitmap);
+	player->SetPosition(100.f, 100.0f);
+	player->SetSize(128.0f, 128.0f);
+	
+	playerActor = player.get();
+	actors.push_back(std::move(player));
+
+
 }
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
@@ -79,7 +89,8 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			{
 				L"Add Window",
 				a, b,
-				0.2, 0.2
+				0.2, 0.2,
+				false
 			}
 		);
 		
@@ -99,30 +110,63 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 				a = 0.3f;
 				b = 0.3f;
 			}
-			
-		
+	}
+	if (input.IsKeyPressed(mainWindowId, VK_TAB))
+	{
+		int subWindow = windows.CreateGameWindow(
+			{
+				L"Add Window",
+				a+0.3f, b,
+				0.2, 0.2,
+				true
+			}
+		);
 
+		a += 0.01; b += 0.01;
+		HMONITOR hMonitor = MonitorFromPoint({ 0,0 }, MONITOR_DEFAULTTONEAREST);
+
+		MONITORINFO mi = {};
+		mi.cbSize = sizeof(MONITORINFO);
+
+		if (!GetMonitorInfo(hMonitor, &mi)) return;
+
+
+		RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
+
+		if (work.bottom < b)
+		{
+			a = 0.3f;
+			b = 0.3f;
+		}
 	}
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
-		
-		PlayerHitSound();
+		//windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
+		playerActor->Move(5, 0);
+		//PlayerHitSound();
 	}
 	if (input.IsKeyDown(mainWindowId, VK_LEFT))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(-0.2, 0, 3, deltaTime);
+		playerActor->Move(-5, 0);
+		//windows.GetWindowById(mainWindowId)->MoveWindow(-0.2, 0, 3, deltaTime);
 	}
 	if (input.IsKeyDown(mainWindowId, VK_UP))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(0, -0.2, 3, deltaTime);
+		playerActor->Move(0, -5);
+		//windows.GetWindowById(mainWindowId)->MoveWindow(0, -0.2, 3, deltaTime);
 	}
 	if (input.IsKeyDown(mainWindowId, VK_DOWN))
 	{
-		windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
+		playerActor->Move(0, 5);
+		//windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
 	}
 
 	playerAnimation.Update(deltaTime);
+
+	for (auto& actor : actors)
+	{
+		actor->Update(deltaTime);
+	}
 }
 
 void GameContent::OnRender(EngineContext& engine)
@@ -156,12 +200,29 @@ void GameContent::OnRender(EngineContext& engine)
 		sourceRect
 	);
 
+	//액터 렌더는 여기서
+	for (auto& actor : actors)
+	{
+		if (actor->GetWindowId() == mainWindowId)
+		{
+			actor->Render(d2d);
+		}
+	}
 
 	HRESULT hr = d2d.EndDraw(mainWindowId);
 
 	if (hr == D2DERR_RECREATE_TARGET)
 	{
 		testBitmap.Reset();
+
+		//액터 리셋은 여기서
+		for (auto& actor : actors)
+		{
+			if (actor->GetWindowId() == mainWindowId)
+			{
+				actor->ResetBitmap();
+			}
+		}
 	}
 
 
@@ -170,5 +231,13 @@ void GameContent::OnRender(EngineContext& engine)
 
 void GameContent::OnEnd(EngineContext& engine)
 {
+	actors.clear();
+	playerActor = nullptr;
+
 	testBitmap.Reset();
+}
+
+void GameContent::PlayerHitSound()
+{
+	PlaySound(L"../Resource/Shock The World.wav", nullptr, SND_FILENAME | SND_ASYNC);
 }

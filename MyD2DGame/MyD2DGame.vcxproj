@@ -125,6 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="D2DManager.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="EngineContext.cpp" />
@@ -137,6 +138,7 @@
     <ClCompile Include="WindowManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor.h" />
     <ClInclude Include="Content.h" />
     <ClInclude Include="D2DManager.h" />
     <ClInclude Include="Engine.h" />

@@ -57,6 +57,9 @@
     <ClCompile Include="WicManager.cpp">
       <Filter>Engine\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -87,6 +90,10 @@
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="WicManager.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+
+    <ClInclude Include="Actor.h">
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
