@@ -60,6 +60,9 @@
     <ClCompile Include="Actor.cpp">
       <Filter>Engine\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="WindowController.cpp">
+      <Filter>Contents\소스파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -92,9 +95,11 @@
     <ClInclude Include="WicManager.h">
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
-
     <ClInclude Include="Actor.h">
       <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowController.h">
+      <Filter>Contents\헤더파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
