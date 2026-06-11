@@ -102,10 +102,7 @@ void WindowController::MovePlayerRegion(float deltaTime)
     {
         windows.GetWindowById(playerRegionId)->MoveWindow(0.15, 0.0, 1.3, deltaTime);
     }
-    if (input.IsKeyPressed(playerRegionId, VK_SPACE))
-    {
-        windows.GetWindowById(playerRegionId)->MoveWindow(0, -40.0, 1, deltaTime);
-    }
+   
 }
 
 

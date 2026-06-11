@@ -90,7 +90,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 
 	}
-
 	/*
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{

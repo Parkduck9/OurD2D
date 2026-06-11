@@ -21,8 +21,8 @@ public:
 
 
 private:
-	int mainWindowId = -1;
 
+	int mainWindowId = -1;
 	WindowController player; // 플레이어 컨트롤러(창) 객체
 	WindowController enemy; // 적 컨트롤러(창) 객체
 	BattleState state = BattleState::Explore; // 배틀 상태

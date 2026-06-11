@@ -4,23 +4,27 @@
 class WindowController
 {
 public:
+
+	// Initialize the WindowController with the engine context
 	void Initialize(EngineContext& engine);
 
 	void SaveStartPositions(int enemyRegionId);
 
+	// Create the player, enemy fields and regions
 	void CreatePlayerStartField();
 	void CreatePlayerStartRegion();
 
 	void CreateEnemyStartField();
 	void CreateEnemyStartRegion();
 
+	// Create MovePlayerRegion function
 	void MovePlayerRegion(float deltatime);
 
 
 
 
 	void BattleRegion(float deltaTime, int enemyRegionId);
-	// Player, Enemy Region Id ���
+
 	int GetPlayerRegionId() const { return playerRegionId; }
 	int GetEnemyRegionId() const { return enemyRegionId; };
 
@@ -36,6 +40,7 @@ private :
 	
 	
 protected:
+
 	EngineContext* context = nullptr;
 	int playerFieldId = -1;
 	int playerRegionId = -1;
