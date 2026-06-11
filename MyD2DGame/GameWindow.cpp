@@ -147,21 +147,21 @@ void GameWindow::ReSizeWindow(float WidthRatio, float HeightRatio)
 	RECT work = mi.rcWork; //툴바 작업 표시줄 등등 제외한 영역
 
 	//모니터 (작업공간의 너비 높이) 구하기
-	int workWidth = work.right - work.left;
-	int workHeight = work.bottom - work.top;
+	double workWidth = work.right - work.left;
+	double workHeight = work.bottom - work.top;
 
 	//모니터 작업공간의 (창의 너비, 높이) 구하기
-	int targetWidth = static_cast<int>(workWidth * WidthRatio);
-	int targetHeight = static_cast<int>(workHeight * HeightRatio);
+	double targetWidth = workWidth * WidthRatio;
+	double targetHeight = workHeight * HeightRatio;
 
-	x = x + width / 2;
-	y = y + height / 2;
+	x = x + width / 2.0;
+	y = y + height / 2.0;
 
-	x = x - targetWidth / 2;
-	y = y - targetHeight / 2;
+	x = x - targetWidth / 2.0;
+	y = y - targetHeight / 2.0;
 
 
-	SetWindowPos(m_hwnd, nullptr, x, y, targetWidth, targetHeight, SWP_NOZORDER | SWP_NOACTIVATE);
+	SetWindowPos(m_hwnd, nullptr, static_cast<int>(std::round(x)), static_cast<int>(std::round(y)), static_cast<int>(std::round(targetWidth)), static_cast<int>(std::round(targetHeight)), SWP_NOZORDER | SWP_NOACTIVATE);
 
 }
 
