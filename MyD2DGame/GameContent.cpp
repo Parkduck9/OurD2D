@@ -18,7 +18,7 @@ void GameContent::OnStart(EngineContext& engine)
 {
 	player.Initialize(engine);
 	enemy.Initialize(engine);
-	// 플레이어와 적 객체 생성
+	// 플레이어와 적 객체 생성 (refrence)
 
 	auto& windows = engine.GetWindowManager();
 	auto& d2d = engine.GetD2DManager();
@@ -38,7 +38,7 @@ void GameContent::OnStart(EngineContext& engine)
 
 
 	player.SaveStartPositions(enemy.GetEnemyRegionId()); 
-	// 시작 위치 저장
+	// 시작 위치 저장 (return to end battle)
 
 }
 
@@ -46,16 +46,16 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
 
-	//테스트용 
-
 
 	switch (state) {
 	case BattleState::Explore:
-
+		// playerMove for key
 		player.MovePlayerRegion(deltaTime);
+
 
 		fixedFieldTime += deltaTime;
 
+		//0.1second -> fieldBoundary update -> Enemy field resize up, Player field resize down
 		if (fixedFieldTime >= 0.1f)
 		{
 			fieldBoundary += 0.001f;
@@ -65,7 +65,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			fixedFieldTime = 0.0f;
 		}
 
-
+		// Enter key -> Move to Battle
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
 			state = BattleState::MoveToBattle;
@@ -74,8 +74,9 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 
 	case BattleState::MoveToBattle:
+		// player, enemy move to battle region
 		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
-
+		// battle region arrived -> Change Expand Battle (BattleState)
 		if (player.IsBattleRegionArrived(enemy.GetEnemyRegionId()))
 		{
 			battleExpandT = 0.0f;
@@ -86,12 +87,13 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 	case BattleState::ExpandBattle:
 	{
+		// just one create battle field
 		if (!battleFieldCreated)
 		{
 			player.CreateBattleField();
 			battleFieldCreated = true;
 		}
-
+		// battleExpandT update 0->1 (battle field height ratio resize)
 		battleExpandT += battleExpandSpeed * deltaTime;
 
 		if (battleExpandT > 1.0f)
@@ -101,12 +103,12 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 		float startHeight = 0.01f;
 		float endHeight = 0.75f;
-
 		float heightRatio =
 			startHeight + (endHeight - startHeight) * battleExpandT;
 
 		player.ResizeBattleField(heightRatio);
 
+		// if battleExpandT arrived 1.0f -> Change BattleState to Battle
 		if (battleExpandT >= 1.0f)
 		{
 			state = BattleState::Battle;
@@ -115,6 +117,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 	}
 	case BattleState::Battle:
+		// BackSpace key use -> Return BattleExpandT (rewind) (BattleState)
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
 			battleExpandT = 1.0f;
@@ -125,7 +128,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	case BattleState::Return:
 	{
 		battleExpandT -= battleExpandSpeed * deltaTime;
-
+		// battleExpandT 1-> 0 ( battle field  height resize for small)
 		if (battleExpandT < 0.0f)
 		{
 			battleExpandT = 0.0f;
@@ -138,7 +141,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			startHeight + (endHeight - startHeight) * battleExpandT;
 
 		player.ResizeBattleField(heightRatio);
-
+		// resize clear -> delete battle field -> State change Return Explore
 		if (battleExpandT <= 0.0f)
 		{
 			player.DestroyBattleField();
@@ -152,10 +155,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	}
 
 	case BattleState::ReturnExplore:
+		//player,enemy region return start position
 		if (player.BattleEndRegion(deltaTime, enemy.GetEnemyRegionId()))
 		{
 			battleExpandT = 0.0f;
-			state = BattleState::Explore;
+			state = BattleState::Explore; // change Explore(State)
 		}
 		break;
 
@@ -190,7 +194,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 
 	}
-
+	// actor update ( maybe delete ? )
 	for (auto& actor : actors)
 	{
 		actor->Update(deltaTime);
@@ -199,6 +203,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 void GameContent::OnRender(EngineContext& engine)
 {
+	// not mainWindowId -> skip
 	if (mainWindowId == -1)
 	{
 		return;

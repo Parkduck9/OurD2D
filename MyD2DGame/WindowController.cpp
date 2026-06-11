@@ -3,12 +3,13 @@
 #include "WindowManager.h"   
 #include "InputManager.h"
 
-
+//EngineContext save reference
 void WindowController::Initialize(EngineContext &engine)
 {
 	context = &engine;
 }
 
+// player/enemy region save start position 
 void WindowController::SaveStartPositions(int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -23,6 +24,7 @@ void WindowController::SaveStartPositions(int enemyRegionId)
     enemyStartY = enemyWnd->GetY();
 } 
 
+// player field 
 void WindowController::CreatePlayerStartField() 
 {
     auto& windows = context->GetWindowManager();
@@ -33,6 +35,7 @@ void WindowController::CreatePlayerStartField()
         });
 }
 
+// enemy field created
 void WindowController::CreateEnemyStartField()
 {
     auto& windows = context->GetWindowManager();
@@ -43,6 +46,7 @@ void WindowController::CreateEnemyStartField()
         });
 }
 
+// create player start region
 void WindowController::CreatePlayerStartRegion()
 {
     auto& windows = context->GetWindowManager();
@@ -56,7 +60,7 @@ void WindowController::CreatePlayerStartRegion()
     );
 }
 
-
+// create enemy start region
 void WindowController::CreateEnemyStartRegion()
 {
     auto& windows = context->GetWindowManager();
@@ -69,6 +73,8 @@ void WindowController::CreateEnemyStartRegion()
     );
 }
 
+// BattleState change -> Created Battle field
+// if (!= -1) -> just one create
 void WindowController::CreateBattleField()
 {
     auto& windows = context->GetWindowManager();
@@ -86,6 +92,8 @@ void WindowController::CreateBattleField()
         }
     );
 }
+// battle field height -> adjustment heightRatio 
+// expandBattle / return (state) -> see production
 void WindowController::ResizeBattleField(float heightRatio)
 {
     auto& windows = context->GetWindowManager();
@@ -101,6 +109,8 @@ void WindowController::ResizeBattleField(float heightRatio)
         0.5f
     );
 }
+
+//Not implemented
 void WindowController::DestroyBattleField()
 {
     // WindowManager에 Delete/Destroy 함수가 있으면 그걸 쓰면 됨.
@@ -110,6 +120,7 @@ void WindowController::DestroyBattleField()
     battleFieldId = -1;
 }
 
+// Input key -> Player region Move
 void WindowController::MovePlayerRegion(float deltaTime)
 {
     auto& input = context->GetInputManager();
@@ -145,7 +156,7 @@ void WindowController::MovePlayerRegion(float deltaTime)
    
 }
 
-
+// player,enemy region wnd -> change(player, enemy)
 void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -157,7 +168,7 @@ void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
     MoveToward(enemyRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
 }
 
-
+// return to start position(player, enemy)
 bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -168,17 +179,18 @@ bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
     MoveToward(playerRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
     MoveToward(enemyRegionId, enemyStartX, enemyStartY, 3.0f, deltaTime);
 
-    // �� �� ���������� true ��ȯ
+    // if inside 5px -> Arrived(true) or false
     bool playerArrived = abs(playerStartX - playerWnd->GetX()) 
         <= 5.0f && abs(playerStartY - playerWnd->GetY()) <= 5.0f;
 
     bool enemyArrived = abs(enemyStartX - enemyWnd->GetX()) 
         <= 5.0f && abs(enemyStartY - enemyWnd->GetY()) <= 5.0f;
 
-    return playerArrived && enemyArrived; // �Ѵ� True���� return 1 �ǵ��� ����
+    return playerArrived && enemyArrived;  // -> true change state
 }
 
-
+// windowId (targetX,Y) pixel -> move Speed(speeD) 
+// if inside 5px -> Dont move
 void WindowController::MoveToward(int windowId, float targetX, float targetY, float speed, float deltaTime)
 {
     auto& windows = context->GetWindowManager();
@@ -201,6 +213,8 @@ void WindowController::MoveToward(int windowId, float targetX, float targetY, fl
     wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
 }
 
+// based on boundary -> player field resize
+// boundary size up -> player field size down
 void WindowController::ResizePlayerField(float boundary)
 {
     auto& windows = context->GetWindowManager();
@@ -218,7 +232,7 @@ void WindowController::ResizePlayerField(float boundary)
         yRatio
     );
 }
-
+// based on boundary -> boundary size up = enemy field size up
 void WindowController::ResizeEnemyField(float boundary)
 {
     auto& windows = context->GetWindowManager();
@@ -226,7 +240,7 @@ void WindowController::ResizeEnemyField(float boundary)
     if (fieldWnd == nullptr) return;
 
     float heightRatio = boundary;
-    float yRatio = boundary / 2.0f;
+    float yRatio = boundary / 2.0f; // 0이 위다! 그러니까 반대로 슈슉
     
 
     fieldWnd->ResizeWindowToMonitorRatio(
@@ -237,6 +251,9 @@ void WindowController::ResizeEnemyField(float boundary)
         yRatio
     );
 }
+
+// player, enemy region position arrived? < check
+// inside 5px -> arrived(true)
 bool WindowController::IsBattleRegionArrived(int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -254,5 +271,5 @@ bool WindowController::IsBattleRegionArrived(int enemyRegionId)
         abs(playerStartX - enemyWnd->GetX()) <= 5.0f &&
         abs(playerStartY - enemyWnd->GetY()) <= 5.0f;
 
-    return playerArrived && enemyArrived;
+    return playerArrived && enemyArrived; // true -> change battlestate
 }
