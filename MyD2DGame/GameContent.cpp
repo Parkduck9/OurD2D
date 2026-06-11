@@ -55,9 +55,10 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		player.MovePlayerRegion(deltaTime);
 
 		fixedFieldTime += deltaTime;
+		
 		if (fixedFieldTime >= 0.1f)
 		{
-			fieldBoundary -= 0.001f;
+			fieldBoundary += 0.001f;
 			fieldBoundary = max(0.0f, min(1.0f, fieldBoundary));
 			player.ResizePlayerField(fieldBoundary);
 			enemy.ResizeEnemyField(fieldBoundary);

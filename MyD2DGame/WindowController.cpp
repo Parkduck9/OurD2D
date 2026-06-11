@@ -188,6 +188,7 @@ void WindowController::ResizeEnemyField(float boundary)
 
     float heightRatio = boundary;
     float yRatio = boundary / 2.0f;
+    
 
     fieldWnd->ResizeWindowToMonitorRatio(
         fieldWnd->GetHwnd(),
