@@ -52,11 +52,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 	switch (state) {
 	case BattleState::Explore:
-		
+
 		player.MovePlayerRegion(deltaTime);
 
 		fixedFieldTime += deltaTime;
-		
+
 		if (fixedFieldTime >= 0.1f)
 		{
 			fieldBoundary += 0.001f;
@@ -69,58 +69,151 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
-			state = BattleState::Battle;
+			battleRegionHeight = 0.15f;
+			state = BattleState::MoveToBattle;
 		}
 
 		break;
 
-	case BattleState::Battle:
+	case BattleState::MoveToBattle:
 		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
+
+		if (player.IsBattleRegionArrived(enemy.GetEnemyRegionId()))
+		{
+			battleExpandT = 0.0f;
+			state = BattleState::ExpandBattle;
+		}
+		break;
+
+	case BattleState::ExpandBattle:
+	{
+		battleExpandT += battleExpandSpeed * deltaTime;
+
+		if (battleExpandT > 1.0f)
+		{
+			battleExpandT = 1.0f;
+		}
+
+		float startHeight = 0.15f;
+		float endHeight = 1.0f;
+
+		float heightRatio =
+			startHeight + (endHeight - startHeight) * battleExpandT;
+
+		// 자리 바뀐 뒤:
+		// player는 enemy 시작 위치 쪽: y 0.2 근처
+		// enemy는 player 시작 위치 쪽: y 0.8 근처
+		float playerStartYRatio = 0.2f;
+		float enemyStartYRatio = 0.8f;
+
+		float centerYRatio = 0.5f;
+
+		float playerYRatio =
+			playerStartYRatio + (centerYRatio - playerStartYRatio) * battleExpandT;
+
+		float enemyYRatio =
+			enemyStartYRatio + (centerYRatio - enemyStartYRatio) * battleExpandT;
+
+		player.ResizePlayerRegionForBattle(heightRatio, playerYRatio);
+		player.ResizeEnemyRegionForBattle(enemy.GetEnemyRegionId(), heightRatio, enemyYRatio);
+
+		if (battleExpandT >= 1.0f)
+		{
+			state = BattleState::Battle;
+		}
+
+		break;
+	}
+	case BattleState::Battle:
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
+			battleExpandT = 1.0f;
 			state = BattleState::Return;
 		}
 		break;
 
 	case BattleState::Return:
+	{
+		battleExpandT -= battleExpandSpeed * deltaTime;
+
+		if (battleExpandT < 0.0f)
+		{
+			battleExpandT = 0.0f;
+		}
+
+		float startHeight = 0.15f;
+		float endHeight = 1.0f;
+
+		float heightRatio =
+			startHeight + (endHeight - startHeight) * battleExpandT;
+
+		float playerStartYRatio = 0.2f;
+		float enemyStartYRatio = 0.8f;
+		float centerYRatio = 0.5f;
+
+		float playerYRatio =
+			playerStartYRatio + (centerYRatio - playerStartYRatio) * battleExpandT;
+
+		float enemyYRatio =
+			enemyStartYRatio + (centerYRatio - enemyStartYRatio) * battleExpandT;
+
+		player.ResizePlayerRegionForBattle(heightRatio, playerYRatio);
+		player.ResizeEnemyRegionForBattle(
+			enemy.GetEnemyRegionId(),
+			heightRatio,
+			enemyYRatio
+		);
+
+		if (battleExpandT <= 0.0f)
+		{
+			state = BattleState::ReturnExplore;
+		}
+
+		break;
+	}
+
+	case BattleState::ReturnExplore:
 		if (player.BattleEndRegion(deltaTime, enemy.GetEnemyRegionId()))
 		{
+			battleExpandT = 0.0f;
+			battleRegionHeight = 0.15f;
 			state = BattleState::Explore;
 		}
 		break;
 
-	}
-	/*
-	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
-	{
-		//windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
-		playerActor->Move(5, 0);
-		//PlayerHitSound();
-		playerActor->PlayAnimation(L"walk");
-	}
-	if (input.IsKeyDown(mainWindowId, VK_LEFT))
-	{
-		playerActor->Move(-5, 0);
-		//windows.GetWindowById(mainWindowId)->MoveWindow(-0.2, 0, 3, deltaTime);
-		playerActor->PlayAnimation(L"walk");
-	}
-	if (input.IsKeyDown(mainWindowId, VK_UP))
-	{
-		playerActor->Move(0, -5);
-		//windows.GetWindowById(mainWindowId)->MoveWindow(0, -0.2, 3, deltaTime);
-		playerActor->PlayAnimation(L"idle");
-	}
-	if (input.IsKeyDown(mainWindowId, VK_DOWN))
-	{
-		playerActor->Move(0, 5);
-		//windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
-		playerActor->PlayAnimation(L"idle");
-	}
-	*/
+		/*
+		if (input.IsKeyDown(mainWindowId, VK_RIGHT))
+		{
+			//windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
+			playerActor->Move(5, 0);
+			//PlayerHitSound();
+			playerActor->PlayAnimation(L"walk");
+		}
+		if (input.IsKeyDown(mainWindowId, VK_LEFT))
+		{
+			playerActor->Move(-5, 0);
+			//windows.GetWindowById(mainWindowId)->MoveWindow(-0.2, 0, 3, deltaTime);
+			playerActor->PlayAnimation(L"walk");
+		}
+		if (input.IsKeyDown(mainWindowId, VK_UP))
+		{
+			playerActor->Move(0, -5);
+			//windows.GetWindowById(mainWindowId)->MoveWindow(0, -0.2, 3, deltaTime);
+			playerActor->PlayAnimation(L"idle");
+		}
+		if (input.IsKeyDown(mainWindowId, VK_DOWN))
+		{
+			playerActor->Move(0, 5);
+			//windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
+			playerActor->PlayAnimation(L"idle");
+		}
+		*/
 
-	for (auto& actor : actors)
-	{
-		actor->Update(deltaTime);
+		for (auto& actor : actors)
+		{
+			actor->Update(deltaTime);
+		}
+
 	}
 }
 

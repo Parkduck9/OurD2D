@@ -1,7 +1,11 @@
 ﻿#pragma once
+
 enum class BattleState
 {
-	Explore,
-	Battle, 
-	Return 
+    Explore,
+    MoveToBattle,
+    ExpandBattle,
+    Battle,
+    Return,
+    ReturnExplore
 };

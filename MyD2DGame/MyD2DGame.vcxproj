@@ -130,7 +130,7 @@
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="EngineContext.cpp" />
     <ClCompile Include="GameContent.cpp" />
-    <ClCompile Include="GameingWndChange.cpp" />
+    <ClCompile Include="BattleWnd.cpp" />
     <ClCompile Include="GameWindow.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -155,7 +155,7 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GameingWndChange.h" />
+    <None Include="BattleWnd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -25,12 +25,17 @@ private:
 	int mainWindowId = -1;
 	WindowController player; // 플레이어 컨트롤러(창) 객체
 	WindowController enemy; // 적 컨트롤러(창) 객체
+	
 	BattleState state = BattleState::Explore; // 배틀 상태
 
 
 
 	float fieldBoundary  = 0.50f;  // 경계선 Y 비율 (0~1), 이 하나로 두 필드 크기 결정
 	float fixedFieldTime = 0.0f;
+	float battleRegionHeight = 0.15f;
+
+	float battleExpandT = 0.0f;
+	float battleExpandSpeed = 1.0f;
 
 	//오디오, 비트맵 임시 변수(삭제예정)
 	float a = 0.1f, b = 0.1f;

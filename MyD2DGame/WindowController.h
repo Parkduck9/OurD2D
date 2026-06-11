@@ -33,6 +33,10 @@ public:
 
 	void ResizePlayerField(float boundary);
 	void ResizeEnemyField(float boundary);
+	bool IsBattleRegionArrived(int enemyRegionId);
+
+	void ResizePlayerRegionForBattle(float heightRatio, float yRatio);
+	void ResizeEnemyRegionForBattle(int enemyRegionId, float heightRatio, float yRatio);
 
 private :
 
@@ -54,5 +58,5 @@ protected:
 	float playerStartY = 0.0f;
 
 	float fieldWidthRatio = 1.007f;
-
+	float fieldHeightRatio = 0.508f;
 };
