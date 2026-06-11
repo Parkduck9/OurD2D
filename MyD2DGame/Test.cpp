@@ -39,9 +39,27 @@ void GameContent::OnStart(EngineContext& engine)
 
 	player.SaveStartPositions(enemy.GetEnemyRegionId());
 	// 시작 위치 저장
+	mainWindowId = player.GetPlayerRegionId();
 
-	Actor actorA(player.GetPlayerRegionId());
-	Actor actorB(player.GetPlayerRegionId());
+	auto* window = engine.GetWindowManager().GetWindowById(mainWindowId);
+	engine.GetD2DManager().CreateRenderTargetForWindow(
+		mainWindowId,
+		window->GetHwnd()
+	);
+
+
+	auto actorA = std::make_unique<Actor>(mainWindowId);
+	auto actorB = std::make_unique<Actor>(mainWindowId);
+
+	actorA->InitializeSprite(engine, L"../Resource/알아.png", 0.0f, 0.0f, 100.0f, 100.0f);
+	actorB->InitializeSprite(engine, L"../Resource/디바.png", 50.0f, 50.0f, 100.0f, 100.0f);
+
+	playerActor = actorA.get();
+	Actor* enemyActor = actorB.get();
+
+	actors.push_back(std::move(actorA));
+	actors.push_back(std::move(actorB));
+
 
 
 
@@ -52,7 +70,8 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	auto& input = engine.GetInputManager();
 
 	//테스트용 
-
+	Actor* actorA = actors[0].get();
+	Actor* actorB = actors[1].get();
 
 	switch (state) {
 	case BattleState::Explore:
@@ -110,6 +129,15 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		playerActor->PlayAnimation(L"idle");
 	}
 	*/
+	bool isCollision = actorA->GetBoxCollider().Intersects(*actorA, *actorB);
+	if (isCollision)
+	{
+		OutputDebugStringW(L"Collision!\n");
+	}
+	else
+	{
+		OutputDebugStringW(L"NoCollision~~~\n");
+	}
 
 	for (auto& actor : actors)
 	{

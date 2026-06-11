@@ -156,6 +156,10 @@
     <ClInclude Include="WindowController.h" />
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resource\디바.png" />
+    <Image Include="..\Resource\알아.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
