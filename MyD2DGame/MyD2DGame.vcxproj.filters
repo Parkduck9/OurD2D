@@ -69,6 +69,9 @@
     <ClCompile Include="Test.cpp">
       <Filter>Engine\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="BattleWnd.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -113,6 +116,9 @@
     <ClInclude Include="Test.h">
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="BattleState.h">
+      <Filter>Contents\헤더파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resource\디바.png">
@@ -121,5 +127,10 @@
     <Image Include="..\Resource\알아.png">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BattleWnd.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

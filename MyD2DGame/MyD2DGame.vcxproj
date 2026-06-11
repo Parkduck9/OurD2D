@@ -143,11 +143,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
-<<<<<<< HEAD
     <ClInclude Include="BattleState.h" />
-=======
     <ClInclude Include="Collider.h" />
->>>>>>> e55d362a84fe5024589eba903d85cb9d3d6bc829
     <ClInclude Include="Content.h" />
     <ClInclude Include="D2DManager.h" />
     <ClInclude Include="Engine.h" />
@@ -162,13 +159,9 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <None Include="BattleWnd.h" />
-=======
     <Image Include="..\Resource\디바.png" />
-    <Image Include="..\Resource\알아.png" />
->>>>>>> e55d362a84fe5024589eba903d85cb9d3d6bc829
-  </ItemGroup>
+    <Image Include="..\Resource\알아.png" />  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
