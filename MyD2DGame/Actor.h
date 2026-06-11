@@ -32,7 +32,14 @@ public:
 
 	Transform GetTransform();
 
-	BoxCollider GetBoxCollider();
+
+	void AddBoxCollider(float offsetX, float offsetY, float width, float height);
+	bool HasBoxCollider() const;
+	
+	BoxCollider& GetBoxCollider();
+	const BoxCollider& GetBoxCollider() const; //const Actor¿ë
+
+
 
 	void SetBitmap  (const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap);
 	void ResetBitmap();
@@ -63,4 +70,5 @@ private:
 
 	//Collider
 	BoxCollider collider;
+	bool hasCollider = false;
 };

@@ -1,4 +1,4 @@
-#include "Test.h"
+ï»¿#include "Test.h"
 #include "EngineContext.h"
 #include "WindowManager.h"
 
@@ -8,7 +8,7 @@
 
 #include <Windows.h>
 
-//ÀÓ½Ã ÆÄÀÏ//
+//ì„ì‹œ íŒŒì¼//
 #include<mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 ///////////
@@ -16,10 +16,11 @@
 
 void GameContent::OnStart(EngineContext& engine)
 {
+
 	player.Initalize(engine);
 	enemy.Initalize(engine);
 
-	// ÇÃ·¹ÀÌ¾î¿Í Àû °´Ã¼ »ı¼º
+	// í”Œë ˆì´ì–´ì™€ ì  ê°ì²´ ìƒì„±
 
 	auto& windows = engine.GetWindowManager();
 	auto& d2d = engine.GetD2DManager();
@@ -28,48 +29,42 @@ void GameContent::OnStart(EngineContext& engine)
 
 	Microsoft::WRL::ComPtr<IWICBitmapSource> source;
 
+	
+	WindowCreateInfo wc = { L"DEFAULT", 0.5f, 0.5f, 0.5f, 0.5f, true };
+	
+	mainWindowId = windows.CreateGameWindow(wc);
+	
 
-	enemy.CreateEnemyStartField();
-	player.CreatePlayerStartField();
-	// Àû, ÇÃ·¹ÀÌ¾î ÇÊµå ¿ì¼± »ı¼º (¾Æ´Ï¸é Ã¢ ¾Æ·¡·Î µé¾î°¡¼­ ¹®Á¦ »ı±è)
-
-	enemy.CreateEnemyStartRegion();
-	player.CreatePlayerStartRegion();
-	// ÇÃ·¹ÀÌ¾î, Àû Áö¿ª ¿ì¼± »ı¼º ( Á¦ÀÏ À§·Î ¿Ã¸®±â À§ÇØ¼­ )
-
-	player.SaveStartPositions(enemy.GetEnemyRegionId());
-	// ½ÃÀÛ À§Ä¡ ÀúÀå
-	mainWindowId = player.GetPlayerRegionId();
 
 	auto* window = engine.GetWindowManager().GetWindowById(mainWindowId);
-	engine.GetD2DManager().CreateRenderTargetForWindow(
+	HRESULT hr = engine.GetD2DManager().CreateRenderTargetForWindow(
 		mainWindowId,
 		window->GetHwnd()
 	);
-
+	if (FAILED(hr))
+	{
+		OutputDebugStringW(L"CreateRenderFail\n");
+	}
 
 	auto actorA = std::make_unique<Actor>(mainWindowId);
 	auto actorB = std::make_unique<Actor>(mainWindowId);
 
-	actorA->InitializeSprite(engine, L"../Resource/¾Ë¾Æ.png", 0.0f, 0.0f, 100.0f, 100.0f);
-	actorB->InitializeSprite(engine, L"../Resource/µğ¹Ù.png", 50.0f, 50.0f, 100.0f, 100.0f);
+	bool aLoaded = actorA->InitializeSprite(engine, L"C:/Users/User/source/repos/OurD2D/Resource/ì•Œì•„.png", 50.0f, 50.0f, 100.0f, 100.0f);
+	actorB->InitializeSprite(engine, L"../Resource/ë””ë°”.png", 200.0f, 50.0f, 100.0f, 100.0f);
 
+	
 	playerActor = actorA.get();
 	Actor* enemyActor = actorB.get();
 
 	actors.push_back(std::move(actorA));
 	actors.push_back(std::move(actorB));
-
-
-
-
 }
 
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
 
-	//Å×½ºÆ®¿ë 
+	//í…ŒìŠ¤íŠ¸ìš© 
 	Actor* actorA = actors[0].get();
 	Actor* actorB = actors[1].get();
 
@@ -102,7 +97,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		//player.ResizeField();
 	}
 
-	/*
+	
 	if (input.IsKeyDown(mainWindowId, VK_RIGHT))
 	{
 		//windows.GetWindowById(mainWindowId)->MoveWindow(0.2, 0,3,deltaTime);
@@ -128,15 +123,17 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		//windows.GetWindowById(mainWindowId)->MoveWindow(0, 0.2, 3, deltaTime);
 		playerActor->PlayAnimation(L"idle");
 	}
-	*/
+	
 	bool isCollision = actorA->GetBoxCollider().Intersects(*actorA, *actorB);
 	if (isCollision)
 	{
 		OutputDebugStringW(L"Collision!\n");
+		Winbk = D2D1::ColorF(D2D1::ColorF::Red);
 	}
 	else
 	{
 		OutputDebugStringW(L"NoCollision~~~\n");
+		Winbk = D2D1::ColorF(D2D1::ColorF::White);
 	}
 
 	for (auto& actor : actors)
@@ -156,7 +153,7 @@ void GameContent::OnRender(EngineContext& engine)
 
 	d2d.BeginDraw(mainWindowId);
 
-	d2d.Clear(mainWindowId, D2D1::ColorF(D2D1::ColorF::White));
+	d2d.Clear(mainWindowId, Winbk);
 
 	//d2d.DrawBitmap(mainWindowId, testBitmap.Get(), D2D1::RectF(0.0f, 0.0f, 800.0f, 500.0f));
 
@@ -176,7 +173,7 @@ void GameContent::OnRender(EngineContext& engine)
 	//	sourceRect
 	//);
 
-	//¾×ÅÍ ·»´õ´Â ¿©±â¼­
+	//ì•¡í„° ë Œë”ëŠ” ì—¬ê¸°ì„œ
 	for (auto& actor : actors)
 	{
 		if (actor->GetWindowId() == mainWindowId)
@@ -189,7 +186,7 @@ void GameContent::OnRender(EngineContext& engine)
 
 	if (hr == D2DERR_RECREATE_TARGET)
 	{
-		//¾×ÅÍ ¸®¼ÂÀº ¿©±â¼­
+		//ì•¡í„° ë¦¬ì…‹ì€ ì—¬ê¸°ì„œ
 		for (auto& actor : actors)
 		{
 			if (actor->GetWindowId() == mainWindowId)

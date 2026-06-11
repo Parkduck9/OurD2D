@@ -26,6 +26,8 @@ void Actor::SetSize(float width, float height)
 {
 	transform.width = width;
 	transform.height = height;
+
+	collider.SetSize(width, height);
 }
 
 void Actor::Move(float x, float y)
@@ -39,9 +41,24 @@ Transform Actor::GetTransform()
 	return transform;
 }
 
-BoxCollider Actor::GetBoxCollider()
+BoxCollider& Actor::GetBoxCollider()
 {
 	return collider;
+}
+const BoxCollider& Actor::GetBoxCollider() const
+{
+	return collider;
+}
+
+void Actor::AddBoxCollider(float offsetX, float offsetY, float width, float height)
+{
+	collider.SetOffset(offsetX, offsetY);
+	collider.SetSize(width, height);
+	hasCollider = true;
+}
+bool Actor::HasBoxCollider() const
+{
+	return hasCollider;
 }
 
 void Actor::SetBitmap(const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap)
