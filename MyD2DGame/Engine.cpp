@@ -2,6 +2,9 @@
 #include "GameContent.h"
 #include <chrono>
 
+//테스트 파일
+#include "Test.h"
+
 
 
 

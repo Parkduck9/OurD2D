@@ -5,6 +5,7 @@
 #include "SpriteAnimation.h"
 #include<string>
 #include<unordered_map>
+#include"Collider.h"
 
 class EngineContext;
 class D2DManager;
@@ -28,6 +29,17 @@ public:
 	void SetPosition(float x, float y);
 	void SetSize	(float width, float height);
 	void Move		(float x, float y);
+
+	Transform GetTransform();
+
+
+	void AddBoxCollider(float offsetX, float offsetY, float width, float height);
+	bool HasBoxCollider() const;
+	
+	BoxCollider& GetBoxCollider();
+	const BoxCollider& GetBoxCollider() const; //const Actor용
+
+
 
 	void SetBitmap  (const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap);
 	void ResetBitmap();
@@ -55,4 +67,8 @@ private:
 	//여러개의 애니메이션 사용하려면
 	std::unordered_map<std::wstring, SpriteAnimation> animations;
 	SpriteAnimation* currentAnimation = nullptr;
+
+	//Collider
+	BoxCollider collider;
+	bool hasCollider = false;
 };

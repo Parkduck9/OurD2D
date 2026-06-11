@@ -63,8 +63,11 @@
     <ClCompile Include="WindowController.cpp">
       <Filter>Contents\소스파일</Filter>
     </ClCompile>
-    <ClCompile Include="GameingWndChange.cpp">
-      <Filter>Contents\소스파일</Filter>
+    <ClCompile Include="Collider.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
+      <Filter>Engine\소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,10 +107,19 @@
     <ClInclude Include="WindowController.h">
       <Filter>Contents\헤더파일</Filter>
     </ClInclude>
+    <ClInclude Include="Collider.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="GameingWndChange.h">
-      <Filter>Contents\헤더파일</Filter>
-    </None>
+    <Image Include="..\Resource\디바.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="..\Resource\알아.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
   </ItemGroup>
 </Project>
