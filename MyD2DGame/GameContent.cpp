@@ -149,12 +149,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 	
 
-		if (battleExpandT <= 0.0f)
-		{
-			state = BattleState::ReturnExplore;
-		}
-
-		break;
 	}
 
 	case BattleState::ReturnExplore:
