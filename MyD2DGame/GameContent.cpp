@@ -54,8 +54,15 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		
 		player.MovePlayerRegion(deltaTime);
 
-		player.DefaultFieldSystem(deltaTime);
-		enemy.DefaultFieldSystem(deltaTime);
+		fixedFieldTime += deltaTime;
+		if (fixedFieldTime >= 0.1f)
+		{
+			fieldBoundary -= 0.001f;
+			fieldBoundary = max(0.0f, min(1.0f, fieldBoundary));
+			player.ResizePlayerField(fieldBoundary);
+			enemy.ResizeEnemyField(fieldBoundary);
+			fixedFieldTime = 0.0f;
+		}
 
 
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))

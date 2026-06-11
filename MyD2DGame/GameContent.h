@@ -29,6 +29,9 @@ private:
 
 
 
+	float fieldBoundary  = 0.600f;  // 경계선 Y 비율 (0~1), 이 하나로 두 필드 크기 결정
+	float fixedFieldTime = 0.0f;
+
 	//오디오, 비트맵 임시 변수(삭제예정)
 	float a = 0.1f, b = 0.1f;
 

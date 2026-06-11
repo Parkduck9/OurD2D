@@ -19,10 +19,9 @@ void WindowController::SaveStartPositions(int enemyRegionId)
     playerStartY = playerWnd->GetY();
     enemyStartX = enemyWnd->GetX();
     enemyStartY = enemyWnd->GetY();
-    // Ã³À½ À§Ä¡ ÇÈ¼¿ °ª ¹Þ±â
 } 
 
-void WindowController::CreatePlayerStartField() // ÇÃ·¹ÀÌ¾î ÇÊµå
+void WindowController::CreatePlayerStartField() 
 {
     auto& windows = context->GetWindowManager();
     playerFieldId = windows.CreateGameWindow({ 
@@ -32,7 +31,7 @@ void WindowController::CreatePlayerStartField() // ÇÃ·¹ÀÌ¾î ÇÊµå
         });
 }
 
-void WindowController::CreateEnemyStartField() // Àû ÇÊµå
+void WindowController::CreateEnemyStartField()
 {
     auto& windows = context->GetWindowManager();
     enemyFieldId = windows.CreateGameWindow({
@@ -46,7 +45,7 @@ void WindowController::CreatePlayerStartRegion()
 {
     auto& windows = context->GetWindowManager();
 
-    playerRegionId = windows.CreateGameWindow( // ÇÃ·¹ÀÌ¾î Áö¿ª
+    playerRegionId = windows.CreateGameWindow( // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½
         {
             L"Main Window",
             0.5, 0.8,
@@ -59,7 +58,7 @@ void WindowController::CreatePlayerStartRegion()
 void WindowController::CreateEnemyStartRegion()
 {
     auto& windows = context->GetWindowManager();
-    enemyRegionId = windows.CreateGameWindow( // Àû Áö¿ª
+    enemyRegionId = windows.CreateGameWindow( // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         {
             L"Main Window",
             0.5, 0.2,
@@ -130,14 +129,14 @@ bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
     MoveToward(playerRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
     MoveToward(enemyRegionId, enemyStartX, enemyStartY, 3.0f, deltaTime);
 
-    // µÑ ´Ù µµÂøÇßÀ¸¸é true ¹ÝÈ¯
+    // ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true ï¿½ï¿½È¯
     bool playerArrived = abs(playerStartX - playerWnd->GetX()) 
         <= 5.0f && abs(playerStartY - playerWnd->GetY()) <= 5.0f;
 
     bool enemyArrived = abs(enemyStartX - enemyWnd->GetX()) 
         <= 5.0f && abs(enemyStartY - enemyWnd->GetY()) <= 5.0f;
 
-    return playerArrived && enemyArrived; // µÑ´Ù True¿©¾ß return 1 µÇµµ·Ï ¼³Á¤
+    return playerArrived && enemyArrived; // ï¿½Ñ´ï¿½ Trueï¿½ï¿½ï¿½ï¿½ return 1 ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 }
 
 
@@ -163,52 +162,37 @@ void WindowController::MoveToward(int windowId, float targetX, float targetY, fl
     wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
 }
 
-void WindowController::DefaultFieldSystem(float deltaTime)
-{
-    fixedFieldTime += deltaTime;
-
-    if (fixedFieldTime >= 0.1f)
-    {
-        if (playerFieldId != -1) PlayerResizeField(deltaTime);
-        if (enemyFieldId != -1) EnemyResizeField(deltaTime);
-        fixedFieldTime = 0.0f;
-    }
-}
-void WindowController::PlayerResizeField(float deltaTime)
+void WindowController::ResizePlayerField(float boundary)
 {
     auto& windows = context->GetWindowManager();
     auto* fieldWnd = windows.GetWindowById(playerFieldId);
     if (fieldWnd == nullptr) return;
 
-    fieldHeightRatio -= 0.001f;
-
-    // ¾Æ·¡ °íÁ¤ = YÀ§Ä¡´Â (1.0 - fieldHeightRatio/2)
-    float yRatio = 1.0f - fieldHeightRatio / 2.0f;
+    float heightRatio = 1.0f - boundary;
+    float yRatio = boundary + heightRatio / 2.0f;
 
     fieldWnd->ResizeWindowToMonitorRatio(
         fieldWnd->GetHwnd(),
         fieldWidthRatio,
-        fieldHeightRatio,
+        heightRatio,
         0.5,
         yRatio
     );
 }
 
-void WindowController::EnemyResizeField(float deltaTime)
+void WindowController::ResizeEnemyField(float boundary)
 {
     auto& windows = context->GetWindowManager();
     auto* fieldWnd = windows.GetWindowById(enemyFieldId);
     if (fieldWnd == nullptr) return;
 
-    fieldHeightRatio += 0.001f;
-
-    // À§ °íÁ¤ = YÀ§Ä¡´Â (fieldHeightRatio/2)
-    float yRatio = fieldHeightRatio / 2.0f;
+    float heightRatio = boundary;
+    float yRatio = boundary / 2.0f;
 
     fieldWnd->ResizeWindowToMonitorRatio(
         fieldWnd->GetHwnd(),
         fieldWidthRatio,
-        fieldHeightRatio,
+        heightRatio,
         0.5,
         yRatio
     );

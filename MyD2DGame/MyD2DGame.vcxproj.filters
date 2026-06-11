@@ -63,6 +63,9 @@
     <ClCompile Include="WindowController.cpp">
       <Filter>Contents\소스파일</Filter>
     </ClCompile>
+    <ClCompile Include="GameingWndChange.cpp">
+      <Filter>Contents\소스파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -101,5 +104,10 @@
     <ClInclude Include="WindowController.h">
       <Filter>Contents\헤더파일</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GameingWndChange.h">
+      <Filter>Contents\헤더파일</Filter>
+    </None>
   </ItemGroup>
 </Project>

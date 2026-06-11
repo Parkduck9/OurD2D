@@ -3,9 +3,9 @@
 
 enum class BattleState
 {
-	Explore, // Å½»ö
-	Battle, // ¹èÆ² Áß
-	Return // ÀÚ¸®·Î µ¹¾Æ°¡´Â Áß
+	Explore, // Å½ï¿½ï¿½
+	Battle, // ï¿½ï¿½Æ² ï¿½ï¿½
+	Return // ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ ï¿½ï¿½
 };
 
 class WindowController
@@ -13,14 +13,14 @@ class WindowController
 public:
 	void Initalize(EngineContext& engine);
 
-	// Ã³À½ Ã¢ À§Ä¡ ÀúÀå
+	// Ã³ï¿½ï¿½ Ã¢ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	void SaveStartPositions(int enemyRegionId);
 
-	// ÇÃ·¹ÀÌ¾î Ã¢ À§Ä¡ ¼öÁ¤
+	// ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Ã¢ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	void CreatePlayerStartField();
 	void CreatePlayerStartRegion();
 
-	// Àû Ã¢ À§Ä¡ ¼öÁ¤
+	// ï¿½ï¿½ Ã¢ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
 	void CreateEnemyStartField();
 	void CreateEnemyStartRegion();
 
@@ -29,21 +29,20 @@ public:
 
 
 
-	// Àû ÀüÅõ µ¹ÀÔ ½Ã enemy field Á¦°Å player field Å©±â Á¦¾î
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ enemy field ï¿½ï¿½ï¿½ï¿½ player field Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void BattleRegion(float deltaTime, int enemyRegionId);
-	// Player, Enemy Region Id ¾ò±â
+	// Player, Enemy Region Id ï¿½ï¿½ï¿½
 	int GetPlayerRegionId() const { return playerRegionId; }
 	int GetEnemyRegionId() const { return enemyRegionId; };
-	// Àû ÀüÅõ Á¾·á ½Ã Á¦ÀÚ¸®·Î º¹±Í
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	bool BattleEndRegion(float deltaTime, int enemyRegionId);
 
-	// ±âº» field ½Ã½ºÅÛ
-	void DefaultFieldSystem(float deltaTime);
-	void EnemyResizeField(float deltaTime);
-	void PlayerResizeField(float deltaTime);
+	// ï¿½âº» field ï¿½Ã½ï¿½ï¿½ï¿½
+	void ResizePlayerField(float boundary);
+	void ResizeEnemyField(float boundary);
 
 private :
-	// BattleRegion, BattleEndRegion ½Ã µ¿½Ã¿¡ »ç¿ëÇÏ´Â ºÎºÐ
+	// BattleRegion, BattleEndRegion ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Îºï¿½
 	void MoveToward(int wndId, float targetX, float targetY, float speed, float deltaTime);
 	
 	
@@ -54,18 +53,12 @@ protected:
 	int enemyFieldId = -1;
 	int enemyRegionId = -1;
 
-	// ÀüÅõ µ¹ÀÔ ½Ã Ã¹ region À§Ä¡¸¦ ±â¾ïÇÏ±â À§ÇÑ ÇÔ¼ö
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã¹ region ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 	float enemyStartX = 0.0f;
 	float enemyStartY = 0.0f;
 	float playerStartX = 0.0f;
 	float playerStartY = 0.0f;
 
-	// State::Explore + BattleÀÏ °æ¿ì¿¡ Field°¡ Ä¿Áö°í ÀÛ¾ÆÁö´Â°É
-	// ½Ã°£ ÃÊ·Î °è»êÇÏ±â À§ÇØ »ç¿ëµÇ´Â º¯¼ö
-	float fixedFieldTime = 0.0f;
-
-	// °è¼ÓÇØ¼­ ¹Ù²ð player, enemy¿¡ Height¸¦ º¯È¯½ÃÅ³ º¯¼ö
 	float fieldWidthRatio = 1.007f;
-	float fieldHeightRatio = 0.508f;
 
 };
