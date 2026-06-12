@@ -39,6 +39,8 @@ public:
 	void ResizeEnemyField(float boundary); // Resize enemy field (up up gogo~)
 	bool IsBattleRegionArrived(int enemyRegionId); // Arrived battle region check function
 
+	// (get Field) 
+	int GetBattleFieldId() const { return battleFieldId; }
 private :
 	// windowId -> targetX,targetY -> speed Move function (windowId -> wnd -> move)
 	void MoveToward(int wndId, float targetX, float targetY, float speed, float deltaTime);

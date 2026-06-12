@@ -49,7 +49,7 @@
 //	auto actorA = std::make_unique<Actor>(mainWindowId);
 //	auto actorB = std::make_unique<Actor>(mainWindowId);
 //
-//	bool aLoaded = actorA->InitializeSprite(engine, L"C:/Users/User/source/repos/OurD2D/Resource/알아.png", 50.0f, 50.0f, 100.0f, 100.0f);
+//	actorA->InitializeSprite(engine, L"C:/Users/User/source/repos/OurD2D/Resource/알아.png", 50.0f, 50.0f, 100.0f, 100.0f);
 //	actorB->InitializeSprite(engine, L"../Resource/디바.png", 200.0f, 50.0f, 100.0f, 100.0f);
 //
 //	

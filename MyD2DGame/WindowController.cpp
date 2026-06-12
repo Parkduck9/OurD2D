@@ -2,6 +2,7 @@
 #include "WindowController.h"
 #include "WindowManager.h"   
 #include "InputManager.h"
+#include "D2DManager.h"
 
 //EngineContext save reference
 void WindowController::Initialize(EngineContext &engine)
@@ -87,11 +88,19 @@ void WindowController::CreateBattleField()
             0.5f,
             0.5f,
             0.1f,
-            0.01f,
+            0.75f,
             false
         }
     );
+    auto* battleWnd = windows.GetWindowById(battleFieldId);
+    if (battleWnd == nullptr) return;
+
+    context->GetD2DManager().CreateRenderTargetForWindow(battleFieldId, battleWnd->GetHwnd());
+
+    // 렌더 타겟 등록 후 즉시 작게 축소
+    ResizeBattleField(0.01f);
 }
+
 // battle field height -> adjustment heightRatio 
 // expandBattle / return (state) -> see production
 void WindowController::ResizeBattleField(float heightRatio)
