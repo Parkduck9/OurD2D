@@ -113,7 +113,7 @@ void WindowController::ResizeBattleField(float heightRatio)
 
     battleWnd->ResizeWindowToMonitorRatio(
         battleWnd->GetHwnd(),
-        0.1f,
+        0.3f,
         heightRatio,
         0.5f,
         0.5f
@@ -133,6 +133,54 @@ void WindowController::DestroyBattleField()
 
     battleFieldId = -1;
 }
+
+
+void WindowController::ResizeRegionsForBattle()
+{
+    auto& windows = context->GetWindowManager();
+
+    // enemy region = BattleField 위 절반
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    if (playerWnd != nullptr)
+        playerWnd->ResizeWindowToMonitorRatio(
+            playerWnd->GetHwnd(),
+            0.3f, 0.375f,
+            0.5f, 0.3125f
+        );
+
+    // player region = BattleField 아래 절반
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+    if (enemyWnd != nullptr)
+        enemyWnd->ResizeWindowToMonitorRatio(
+            enemyWnd->GetHwnd(),
+            0.3f, 0.375f,
+            0.5f, 0.6875f
+        );
+}
+
+void WindowController::RestoreRegionsFromBattle()
+{
+    auto& windows = context->GetWindowManager();
+
+    // player는 enemyStart 위치로 (교환된 상태)
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+    if (enemyWnd != nullptr)
+        enemyWnd->ResizeWindowToMonitorRatio(
+            enemyWnd->GetHwnd(),
+            0.1f, 0.15f,
+            0.5f, 0.8f  // 원래 player 시작 위치
+        );
+
+    // enemy는 playerStart 위치로 (교환된 상태)
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    if (playerWnd != nullptr)
+        playerWnd->ResizeWindowToMonitorRatio(
+            playerWnd->GetHwnd(),
+            0.1f, 0.15f,
+            0.5f, 0.2f  // 원래 enemy 시작 위치
+        );
+}
+
 
 // Input key -> Player region Move
 void WindowController::MovePlayerRegion(float deltaTime)

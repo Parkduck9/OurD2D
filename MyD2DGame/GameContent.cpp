@@ -58,7 +58,7 @@ void GameContent::OnStart(EngineContext& engine)
 	enemyActor->SetAnchorWindowId(enemy.GetEnemyRegionId());
 	enemyActor->InitializeSprite(engine, L"../Resource/도로롱.png",40.0f, 0.0f, 100.0f, 100.0f);
 	//적 애니메이션 생성
-	enemyActor->AddAnimation(L"idle", 200, 200, 60, 8, 8.0f);
+	enemyActor->AddAnimation(L"idle", 200, 200, 60, 8, 30.0f);
 	enemyActor->PlayAnimation(L"idle");
 
 
@@ -83,19 +83,8 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	case BattleState::Explore:
 		// playerMove for key
 		player.MovePlayerRegion(deltaTime);
-
-
 		fixedFieldTime += deltaTime;
 
-		//0.1second -> fieldBoundary update -> Enemy field resize up, Player field resize down
-		//if (fixedFieldTime >= 0.1f)
-		//{
-		//	fieldBoundary += 0.001f;
-		//	fieldBoundary = max(0.0f, min(1.0f, fieldBoundary));
-		//	player.ResizePlayerField(fieldBoundary);
-		//	enemy.ResizeEnemyField(fieldBoundary);
-		//	fixedFieldTime = 0.0f;
-		//}
 
 		// Enter key -> Move to Battle
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
@@ -133,8 +122,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		float heightRatio = startHeight + (endHeight - startHeight) * battleExpandT;
 		player.ResizeBattleField(heightRatio);
 
-		if (battleExpandT >= 1.0f)
+		if (battleExpandT >= 1.0f) {
+			player.ResizeRegionsForBattle();
+			enemy.ResizeRegionsForBattle();
 			state = BattleState::Battle;
+		}
 
 		break;
 	}
@@ -142,6 +134,8 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	case BattleState::Battle:
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
+			player.RestoreRegionsFromBattle();
+			enemy.RestoreRegionsFromBattle();
 			battleExpandT = 1.0f;
 			state = BattleState::Return;
 		}
@@ -199,48 +193,6 @@ void GameContent::OnRender(EngineContext& engine)
 
 	d2d.EndDraw(overlayRenderTargetId);
 
-	//int playerRegionId = player.GetPlayerRegionId();
-	//int enemyRegionId = enemy.GetEnemyRegionId();
-
-	//bool drawRegion = (state == BattleState::Explore ||
-	//	state == BattleState::MoveToBattle ||
-	//	state == BattleState::ReturnExplore ||
-	//	(state == BattleState::ExpandBattle && battleExpandT < 0.9f) ||
-	//	(state == BattleState::Return && battleExpandT <= 0.1f));
-
-	//bool drawBattle = (state == BattleState::Battle) ||
-	//	(state == BattleState::ExpandBattle && battleExpandT >= 0.9f) ||
-	//	(state == BattleState::Return && battleExpandT > 0.1f);
-
-	//if (drawRegion)
-	//{
-	//	d2d.BeginDraw(playerRegionId);
-	//	d2d.Clear(playerRegionId, D2D1::ColorF(D2D1::ColorF::White));
-	//	for (auto& actor : actors)
-	//		if (actor->GetWindowId() == playerRegionId)
-	//			actor->Render(d2d);
-	//	d2d.EndDraw(playerRegionId);
-
-	//	d2d.BeginDraw(enemyRegionId);
-	//	d2d.Clear(enemyRegionId, D2D1::ColorF(D2D1::ColorF::White));
-	//	for (auto& actor : actors)
-	//		if (actor->GetWindowId() == enemyRegionId)
-	//			actor->Render(d2d);
-	//	d2d.EndDraw(enemyRegionId);
-	//}
-
-	//if (drawBattle)
-	//{
-	//	int battleId = player.GetBattleFieldId();
-	//	if (battleId == -1) return;
-
-	//	d2d.BeginDraw(battleId);
-	//	d2d.Clear(battleId, D2D1::ColorF(D2D1::ColorF::White));
-	//	for (auto& actor : actors)
-	//		if (actor->GetWindowId() == battleId)
-	//			actor->Render(d2d);
-	//	d2d.EndDraw(battleId);
-	//}
 }
 
 void GameContent::OnEnd(EngineContext& engine)

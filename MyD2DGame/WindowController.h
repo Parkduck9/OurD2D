@@ -23,6 +23,12 @@ public:
 	void ResizeBattleField(float heightRatio); // resize
 	void DestroyBattleField(); // destroy (Not Maked)
 
+	// Battle Field Stat -> 적, 플레이어 region 창 resize
+	void ResizeRegionsForBattle();
+	// 전투 후 복구하는 창
+	void RestoreRegionsFromBattle();
+
+
 	// Create MovePlayerRegion function
 	void MovePlayerRegion(float deltatime);
 
