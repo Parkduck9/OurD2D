@@ -47,10 +47,15 @@ public:
 
 	// (get Field) 
 	int GetBattleFieldId() const { return battleFieldId; }
+	
+	// Default Field (Enemy field size up, player size down)
+	void DefaultFieldSystem(float deltaTime);
+	void ClampRegionsToField();
 private :
 	// windowId -> targetX,targetY -> speed Move function (windowId -> wnd -> move)
 	void MoveToward(int wndId, float targetX, float targetY, float speed, float deltaTime);
 	
+
 	
 protected:
 
@@ -73,4 +78,9 @@ protected:
 
 	float fieldWidthRatio = 1.007f;
 	// field width ratio(0~1) 
+
+
+	float fieldBoundary = 0.50f;  // 경계선 Y 비율 (0~1), 이 하나로 두 필드 크기 결정
+	float fixedFieldTime = 0.0f; // Field size renewal timer
+
 };

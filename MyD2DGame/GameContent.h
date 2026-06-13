@@ -31,9 +31,6 @@ private:
 	BattleState state = BattleState::Explore; // 배틀 상태
 
 
-	float fieldBoundary  = 0.50f;  // 경계선 Y 비율 (0~1), 이 하나로 두 필드 크기 결정
-	float fixedFieldTime = 0.0f; // Field size renewal timer
-	
 	
 	float battleRegionHeight = 0.15f; //Battle region height ratio (0~1)
 	float battleExpandT = 0.0f; // Battle field expansion timer (0~1)

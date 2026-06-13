@@ -79,11 +79,12 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	auto& input = engine.GetInputManager();
 
 
+
 	switch (state) {
 	case BattleState::Explore:
 		// playerMove for key
 		player.MovePlayerRegion(deltaTime);
-		fixedFieldTime += deltaTime;
+		player.DefaultFieldSystem(deltaTime);
 
 
 		// Enter key -> Move to Battle
