@@ -58,7 +58,7 @@ void GameContent::OnStart(EngineContext& engine)
 	enemyActor->SetAnchorWindowId(enemy.GetEnemyRegionId());
 	enemyActor->InitializeSprite(engine, L"../Resource/도로롱.png",40.0f, 0.0f, 100.0f, 100.0f);
 	//적 애니메이션 생성
-	enemyActor->AddAnimation(L"idle", 200, 200, 60, 8, 8.0f);
+	enemyActor->AddAnimation(L"idle", 200, 200, 60, 8, 30.0f);
 	enemyActor->PlayAnimation(L"idle");
 
 
