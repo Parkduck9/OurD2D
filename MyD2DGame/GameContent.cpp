@@ -71,7 +71,13 @@ void GameContent::OnStart(EngineContext& engine)
 	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
 	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
 	playerActor->PlayAnimation(L"idle");
+<<<<<<< HEAD
 	playerActor->AddBoxCollider(0.0f, 0.0f, 200.0f, 112.0f);
+=======
+
+	//playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
+	playerActor->AddBoxCollider(75.0f, 15.0f, 50.0f, 90.0f);
+>>>>>>> a281b7fdfba8fc0554310fea2061388d276ac759
 
 
 	// actors에 저장
