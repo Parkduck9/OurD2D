@@ -27,14 +27,15 @@ public:
 	void DrawBitmap(
 		int windowId,
 		ID2D1Bitmap* bitmap,
-		const D2D1_RECT_F& destRect //그림을 화면에 그릴 영역
+		const D2D1_RECT_F& destRect, //그림을 화면에 그릴 영역
+		float opacity = 1.0f//알파값
 	);
 	void DrawBitmapFrame(
 		int windowId,
 		ID2D1Bitmap* bitmap,
 		const D2D1_RECT_F& destRect, //그림을 화면에 그릴 영역
-		const D2D1_RECT_F& sourceRect//원본 이미지에서 잘라낼 영역
-
+		const D2D1_RECT_F& sourceRect,//원본 이미지에서 잘라낼 영역
+		float opacity = 1.0f
 	);
 	void DrawRectangle(
 		int windowId,

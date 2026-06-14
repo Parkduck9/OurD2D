@@ -6,6 +6,7 @@
 #include "WicManager.h"
 #include "D2DManager.h"
 
+
 #include <Windows.h>
 
 //임시 파일//
@@ -66,19 +67,26 @@ void GameContent::OnStart(EngineContext& engine)
 	//투명창에 플레이어 생성
 	auto playerActor = std::make_unique<Actor>(overlayRenderTargetId);
 	playerActor->SetAnchorWindowId(player.GetPlayerRegionId());
-<<<<<<< HEAD
+
 	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
 	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
 	playerActor->PlayAnimation(L"idle");
-=======
-	playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
-	playerActor->AddBoxCollider(0.0f, 0.0f, 100.0f, 100.0f);
->>>>>>> 55a658821ea14beb7eca17dc6976c39b29de6cfc
+	playerActor->AddBoxCollider(0.0f, 0.0f, 200.0f, 112.0f);
+
 
 	// actors에 저장
 	this->playerActor = playerActor.get();
 	actors.push_back(std::move(playerActor));
 	actors.push_back(std::move(enemyActor));
+
+
+	//스폰 매니저
+	spawnButtonManager.Initialize(
+		overlayRenderTargetId,
+		player.GetPlayerFieldId(),
+		player.GetPlayerRegionId(),
+		L"../Resource/5090.png"
+	);
 
 }
 
@@ -99,15 +107,32 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		player.DefaultFieldSystem(deltaTime);
 		enemy.DefaultFieldSystem(deltaTime);
 
+		//스폰업데이트
+		spawnButtonManager.Update(engine, deltaTime);
+
+		if (spawnButtonManager.IsPlayerTouchingButton(*playerActor, engine.GetWindowManager()) && input.IsKeyPressed(player.GetPlayerRegionId(), 'E'))
+		{
+			spawnButtonManager.Clear();
+
+			state = BattleState::MoveToBattle;
+		}
+
+
 		// Enter key -> Move to Battle
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
+			//스폰 클리어
+			spawnButtonManager.Clear();
 			state = BattleState::MoveToBattle;
 		}
+
+		
 
 		break;
 
 	case BattleState::MoveToBattle:
+
+
 		// player, enemy move to battle region
 		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
 		// battle region arrived -> Change Expand Battle (BattleState)
@@ -300,12 +325,13 @@ void GameContent::OnRender(EngineContext& engine)
 	for (auto& actor : actors)
 	{
 		actor->RenderToOverlay(d2d, windows);
-		
+
 		if (showCollider)
 		{
 			actor->RenderColliderToOverlay(d2d, windows);
 		}
 	}
+	spawnButtonManager.Render(d2d, windows, showCollider);
 	d2d.EndDraw(overlayRenderTargetId);
 }
 

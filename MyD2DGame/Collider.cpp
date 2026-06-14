@@ -21,7 +21,7 @@ void BoxCollider::SetSize(float width, float height)
 	this->height = height;
 }
 
-D2D1_RECT_F BoxCollider::GetWorldRect(Actor& actor) const
+D2D1_RECT_F BoxCollider::GetWorldRect(const Actor& actor) const
 {
 	return D2D1::RectF(
 		actor.GetTransform().x + offsetX,

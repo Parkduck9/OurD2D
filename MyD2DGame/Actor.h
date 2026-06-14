@@ -31,7 +31,7 @@ public:
 	void SetSize	(float width, float height);
 	void Move		(float x, float y);
 
-	Transform GetTransform();
+	Transform GetTransform() const;
 
 
 	void AddBoxCollider(float offsetX, float offsetY, float width, float height);
@@ -40,7 +40,8 @@ public:
 	BoxCollider& GetBoxCollider();
 	const BoxCollider& GetBoxCollider() const; //const Actor용
 
-
+	void SetAlpha(float alpha);
+	float GetAlpha() const;
 
 	void SetBitmap  (const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap);
 	void ResetBitmap();
@@ -59,6 +60,8 @@ public:
 
 	void RenderToOverlay(D2DManager& d2d, const WindowManager& windows) const;
 	void RenderColliderToOverlay(D2DManager& d2d, const WindowManager& windows);
+
+	D2D1_RECT_F GetColliderOverlayRect(const WindowManager& windows) const;
 
 private:
 	D2D1_RECT_F GetDestinationRect() const;
@@ -82,4 +85,7 @@ private:
 	//Collider
 	BoxCollider collider;
 	bool hasCollider = false;
+
+	//알파값
+	float alpha = 1.0f;
 };

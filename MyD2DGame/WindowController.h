@@ -34,6 +34,7 @@ public:
 
 	// player, enemy battle region move function
 	void BattleRegion(float deltaTime, int enemyRegionId);
+	int GetPlayerFieldId() const { return playerFieldId; }
 	int GetPlayerRegionId() const { return playerRegionId; }
 	int GetEnemyRegionId() const { return enemyRegionId; };
 

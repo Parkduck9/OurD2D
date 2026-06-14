@@ -119,7 +119,8 @@ void D2DManager::Clear(int windowId, const D2D1_COLOR_F& color)
 void D2DManager::DrawBitmap(
 	int windowId,
 	ID2D1Bitmap* bitmap,
-	const D2D1_RECT_F& destRect
+	const D2D1_RECT_F& destRect,
+	float opacity
 )
 {
 	auto iter = windowRenderTargets.find(windowId);
@@ -127,7 +128,7 @@ void D2DManager::DrawBitmap(
 	if (bitmap == nullptr) return;
 
 	iter->second.renderTarget->DrawBitmap(
-		bitmap, &destRect
+		bitmap, &destRect, opacity
 	);
 }
 
@@ -136,7 +137,8 @@ void D2DManager::DrawBitmapFrame(
 	int windowId,
 	ID2D1Bitmap* bitmap,
 	const D2D1_RECT_F& destRect,
-	const D2D1_RECT_F& sourceRect
+	const D2D1_RECT_F& sourceRect,
+	float opacity
 )
 {
 	auto iter = windowRenderTargets.find(windowId);
@@ -145,7 +147,7 @@ void D2DManager::DrawBitmapFrame(
 
 	iter->second.renderTarget->DrawBitmap(
 		bitmap, &destRect,
-		1.0f,
+		opacity,
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		&sourceRect
 		);

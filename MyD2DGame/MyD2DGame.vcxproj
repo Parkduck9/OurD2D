@@ -136,6 +136,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyD2DGame.cpp" />
     <ClCompile Include="OverlayWindow.cpp" />
+    <ClCompile Include="SpwnButtonManager.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="WicManager.cpp" />
     <ClCompile Include="WindowController.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="GameWindow.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="OverlayWindow.h" />
+    <ClInclude Include="SpawnButtonManager.h" />
     <ClInclude Include="SpriteAnimation.h" />
     <ClInclude Include="Test.h" />
     <ClInclude Include="WicManager.h" />
