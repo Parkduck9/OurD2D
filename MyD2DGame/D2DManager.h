@@ -22,6 +22,8 @@ public:
 		Microsoft::WRL::ComPtr<ID2D1Bitmap>& outBitmap
 	);
 
+	HRESULT CreateRenderTargetForOverlayDC(int windowId, HDC hdc, int width, int height);
+
 	void BeginDraw(int windowId);
 	void Clear(int windowId, const D2D1_COLOR_F& color);
 	void DrawBitmap(
@@ -50,7 +52,11 @@ private:
 	struct WindowRenderData
 	{
 		HWND hwnd = nullptr;
-		Microsoft::WRL::ComPtr<ID2D1HwndRenderTarget> renderTarget;
+		HDC hdc = nullptr;
+
+		Microsoft::WRL::ComPtr<ID2D1HwndRenderTarget> hwndRenderTarget;
+		Microsoft::WRL::ComPtr<ID2D1RenderTarget> renderTarget;
+		Microsoft::WRL::ComPtr<ID2D1RenderTarget> dcRenderTarget;
 	};
 
 	

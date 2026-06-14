@@ -51,7 +51,7 @@ void GameContent::OnStart(EngineContext& engine)
 	auto* overlay = windows.GetOverlayWindow();
 	overlayRenderTargetId = windows.GetOverlayRenderTargetId();
 	//투명창에 렌더타겟 생성
-	d2d.CreateRenderTargetForWindow(overlayRenderTargetId, overlay->GetHwnd());
+	d2d.CreateRenderTargetForOverlayDC(overlayRenderTargetId, overlay->GetMemoryDC(), overlay->GetWidth(), overlay->GetHeight());
 
 
 	//투명창에 적 생성
@@ -71,13 +71,8 @@ void GameContent::OnStart(EngineContext& engine)
 	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
 	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
 	playerActor->PlayAnimation(L"idle");
-<<<<<<< HEAD
 	playerActor->AddBoxCollider(0.0f, 0.0f, 200.0f, 112.0f);
-=======
 
-	//playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
-	playerActor->AddBoxCollider(75.0f, 15.0f, 50.0f, 90.0f);
->>>>>>> a281b7fdfba8fc0554310fea2061388d276ac759
 
 
 	// actors에 저장
@@ -327,7 +322,7 @@ void GameContent::OnRender(EngineContext& engine)
 
 	// 기존 overlay 렌더링
 	d2d.BeginDraw(overlayRenderTargetId);
-	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(1.0f, 0.0f, 1.0f));
+	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(0.0f,0.0f,0.0f,0.0f));
 	for (auto& actor : actors)
 	{
 		actor->RenderToOverlay(d2d, windows);
@@ -339,6 +334,12 @@ void GameContent::OnRender(EngineContext& engine)
 	}
 	spawnButtonManager.Render(d2d, windows, showCollider);
 	d2d.EndDraw(overlayRenderTargetId);
+
+	auto* overlay = windows.GetOverlayWindow();
+	if (overlay != nullptr)
+	{
+		overlay->Present();
+	}
 }
 
 void GameContent::OnEnd(EngineContext& engine)

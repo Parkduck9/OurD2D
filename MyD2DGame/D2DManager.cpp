@@ -51,6 +51,7 @@ HRESULT D2DManager::CreateRenderTargetForWindow(int windowId, HWND hwnd)
 
 	WindowRenderData data;
 	data.hwnd = hwnd;
+	data.hwndRenderTarget = renderTarget;
 	data.renderTarget = renderTarget;
 
 	windowRenderTargets[windowId] = data;
@@ -175,5 +176,39 @@ void D2DManager::ResizeRenderTarget(int windowId, UINT width, UINT height)
 	auto iter = windowRenderTargets.find(windowId);
 	if (iter == windowRenderTargets.end()) return;
 
-	iter->second.renderTarget->Resize(D2D1::SizeU(width, height));
+	iter->second.hwndRenderTarget->Resize(D2D1::SizeU(width, height));
+}
+
+HRESULT D2DManager::CreateRenderTargetForOverlayDC(int windowId, HDC hdc, int width, int height)
+{
+	if (d2dFactory == nullptr || hdc == nullptr)
+	{
+		return E_FAIL;
+	}
+
+	D2D1_RENDER_TARGET_PROPERTIES props =
+		D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			)
+		);
+
+	Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> dcRenderTarget;
+	HRESULT hr = d2dFactory->CreateDCRenderTarget(&props, &dcRenderTarget);
+	if (FAILED(hr)) return hr;
+
+	RECT rect{ 0, 0, width, height };
+	hr = dcRenderTarget->BindDC(hdc, &rect);
+	if (FAILED(hr)) return hr;
+
+	WindowRenderData data;
+	data.hdc = hdc;
+	data.dcRenderTarget = dcRenderTarget;
+	data.renderTarget = dcRenderTarget;
+
+	windowRenderTargets[windowId] = data;
+
+	return S_OK;
 }

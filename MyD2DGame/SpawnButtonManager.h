@@ -46,13 +46,13 @@ private:
 	std::wstring spritePath;
 
 	float spawnTimer = 0.0f;
-	float spawnInterval = 5.0f;
-	float revealDistance = 250.0f;
+	float spawnInterval = 1.0f;    //버튼 나오는 시간차
+	float revealDistance = 100.0f; //버튼 보이는 플레이어와의 거리
 
-	float buttonWidth = 80.0f;
+	float buttonWidth = 150.0f;
 	float buttonHeight = 80.0f;
 
-	int maxButtonCount = 5;
+	int maxButtonCount = 5;			//버튼 최대 생성 개수
 
 	std::vector<std::unique_ptr<Actor>> buttons;
 	std::mt19937 randomEngine;
