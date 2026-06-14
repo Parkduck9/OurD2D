@@ -66,14 +66,14 @@ void GameContent::OnStart(EngineContext& engine)
 	//투명창에 플레이어 생성
 	auto playerActor = std::make_unique<Actor>(overlayRenderTargetId);
 	playerActor->SetAnchorWindowId(player.GetPlayerRegionId());
-<<<<<<< HEAD
+
 	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
 	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
 	playerActor->PlayAnimation(L"idle");
-=======
-	playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
-	playerActor->AddBoxCollider(0.0f, 0.0f, 100.0f, 100.0f);
->>>>>>> 55a658821ea14beb7eca17dc6976c39b29de6cfc
+
+	//playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
+	playerActor->AddBoxCollider(75.0f, 15.0f, 50.0f, 90.0f);
+
 
 	// actors에 저장
 	this->playerActor = playerActor.get();
