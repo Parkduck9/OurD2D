@@ -220,3 +220,27 @@ D2D1_RECT_F Actor::GetOverlayDestinationRect(const WindowManager& windows) const
 		baseY + transform.y + transform.height
 	);
 }
+
+void Actor::RenderColliderToOverlay(D2DManager& d2d, const WindowManager& windows)
+{
+	if (!hasCollider || windowId < 0) return;
+
+	const OverlayWindow* overlay = windows.GetOverlayWindow();
+	const GameWindow* anchorWindow = windows.GetWindowById(anchorWindowId);
+	if (overlay == nullptr || anchorWindow == nullptr) return;
+
+	float baseX = anchorWindow->GetClientX() - static_cast<float>(overlay->GetX());
+	float baseY = anchorWindow->GetClientY() - static_cast<float>(overlay->GetY());
+
+	D2D1_RECT_F rect = collider.GetWorldRect(*this);
+	rect.left += baseX;
+	rect.right += baseX;
+	rect.top += baseY;
+	rect.bottom += baseY;
+
+	d2d.DrawRectangle(
+		windowId,
+		rect);
+
+
+}

@@ -60,14 +60,20 @@ void GameContent::OnStart(EngineContext& engine)
 	//적 애니메이션 생성
 	enemyActor->AddAnimation(L"idle", 200, 200, 60, 8, 30.0f);
 	enemyActor->PlayAnimation(L"idle");
+	enemyActor->AddBoxCollider(0.0f, 0.0f, 100.0f, 100.0f);
 
 
 	//투명창에 플레이어 생성
 	auto playerActor = std::make_unique<Actor>(overlayRenderTargetId);
 	playerActor->SetAnchorWindowId(player.GetPlayerRegionId());
+<<<<<<< HEAD
 	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
 	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
 	playerActor->PlayAnimation(L"idle");
+=======
+	playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
+	playerActor->AddBoxCollider(0.0f, 0.0f, 100.0f, 100.0f);
+>>>>>>> 55a658821ea14beb7eca17dc6976c39b29de6cfc
 
 	// actors에 저장
 	this->playerActor = playerActor.get();
@@ -80,7 +86,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
 
-
+	//콜라이더 온오프
+	if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_F1))
+	{
+		showCollider = !showCollider;
+	}
 
 	switch (state) {
 	case BattleState::Explore:
@@ -287,7 +297,15 @@ void GameContent::OnRender(EngineContext& engine)
 	// 기존 overlay 렌더링
 	d2d.BeginDraw(overlayRenderTargetId);
 	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(1.0f, 0.0f, 1.0f));
-	for (auto& actor : actors) { actor->RenderToOverlay(d2d, windows); }
+	for (auto& actor : actors)
+	{
+		actor->RenderToOverlay(d2d, windows);
+		
+		if (showCollider)
+		{
+			actor->RenderColliderToOverlay(d2d, windows);
+		}
+	}
 	d2d.EndDraw(overlayRenderTargetId);
 }
 

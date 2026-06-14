@@ -94,6 +94,21 @@ void D2DManager::BeginDraw(int windowId)
 	iter->second.renderTarget->BeginDraw();
 }
 
+void D2DManager::DrawRectangle(
+	int windowId,
+	const D2D1_RECT_F& rect
+)
+{
+	auto iter = windowRenderTargets.find(windowId);
+	if (iter == windowRenderTargets.end()) return;
+
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+	HRESULT hr = iter->second.renderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &brush);
+	if (FAILED(hr)) return;
+
+	iter->second.renderTarget->DrawRectangle(rect, brush.Get(), 3.0f);
+}
+
 void D2DManager::Clear(int windowId, const D2D1_COLOR_F& color)
 {
 	auto iter = windowRenderTargets.find(windowId);

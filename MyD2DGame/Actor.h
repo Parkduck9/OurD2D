@@ -58,10 +58,12 @@ public:
 	void ClearAnchorWindow();
 
 	void RenderToOverlay(D2DManager& d2d, const WindowManager& windows) const;
+	void RenderColliderToOverlay(D2DManager& d2d, const WindowManager& windows);
 
 private:
 	D2D1_RECT_F GetDestinationRect() const;
 	D2D1_RECT_F GetOverlayDestinationRect(const WindowManager& windows) const;
+	
 	int anchorWindowId = -1;
 
 private:
