@@ -39,7 +39,17 @@ void Actor::Move(float x, float y)
 	transform.y += y;
 }
 
-Transform Actor::GetTransform()
+void Actor::SetFlipx(bool flip)
+{
+	flipX = flip;
+}
+
+bool Actor::GetFlipX() const
+{
+	return flipX;
+}
+
+Transform Actor::GetTransform() const
 {
 	return transform;
 }
@@ -62,6 +72,27 @@ void Actor::AddBoxCollider(float offsetX, float offsetY, float width, float heig
 bool Actor::HasBoxCollider() const
 {
 	return hasCollider;
+}
+
+void Actor::SetAlpha(float alpha)
+{
+	if (alpha < 0.0f)
+	{
+		this->alpha = 0.0f;
+	}
+	else if (alpha > 1.0f)
+	{
+		this->alpha = 1.0f;
+	}
+	else
+	{
+		this->alpha = alpha;
+	}
+}
+
+float Actor::GetAlpha() const
+{
+	return alpha;
 }
 
 void Actor::SetBitmap(const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap)
@@ -139,11 +170,11 @@ void Actor::Render(D2DManager& d2d) const
 
 	if (currentAnimation != nullptr)//애니메이션 있을 때
 	{
-		d2d.DrawBitmapFrame(windowId, bitmap.Get(), destinationRect,currentAnimation->GetSourceRect());
+		d2d.DrawBitmapFrame(windowId, bitmap.Get(), destinationRect,currentAnimation->GetSourceRect(), alpha);
 	}
 	else
 	{
-		d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect);
+		d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect, alpha);
 	}
 }
 
@@ -172,15 +203,34 @@ void Actor::RenderToOverlay(D2DManager& d2d, const WindowManager& windows) const
 
 	D2D1_RECT_F destinationRect = GetOverlayDestinationRect(windows);
 
+	//플립시
+	D2D1_MATRIX_3X2_F oldTransform;
+	d2d.GetTransform(windowId, oldTransform);
+
+	if (flipX)
+	{
+		float centerX = (destinationRect.left + destinationRect.right) * 0.5f;
+		float centerY = (destinationRect.top + destinationRect.bottom) * 0.5f;
+
+		D2D1_MATRIX_3X2_F flipTransform =
+			D2D1::Matrix3x2F::Scale(
+				D2D1::SizeF(-1.0f, 1.0f), D2D1::Point2F(centerX, centerY)
+			);
+
+		d2d.SetTransform(windowId, flipTransform * oldTransform);
+	}
+
 	if (currentAnimation != nullptr)
 	{
-		d2d.DrawBitmapFrame(windowId, bitmap.Get(), destinationRect, currentAnimation->GetSourceRect());
+		d2d.DrawBitmapFrame(windowId, bitmap.Get(), destinationRect, currentAnimation->GetSourceRect(), alpha);
 
 	}
 	else
 	{
-		d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect);
+		d2d.DrawBitmap(windowId, bitmap.Get(), destinationRect, alpha);
 	}
+
+	d2d.SetTransform(windowId, oldTransform); //플립을 했다면 다시 원래대로 되돌려놓기
 }
 
 D2D1_RECT_F Actor::GetDestinationRect() const
@@ -243,4 +293,25 @@ void Actor::RenderColliderToOverlay(D2DManager& d2d, const WindowManager& window
 		rect);
 
 
+}
+
+D2D1_RECT_F Actor::GetColliderOverlayRect(const WindowManager& windows) const
+{
+	D2D1_RECT_F rect = collider.GetWorldRect(*this);
+
+	const OverlayWindow* overlay = windows.GetOverlayWindow();
+	const GameWindow* anchorWindow = windows.GetWindowById(anchorWindowId);
+
+	if (overlay != nullptr && anchorWindow != nullptr)
+	{
+		float baseX = anchorWindow->GetClientX() - static_cast<float>(overlay->GetX());
+		float baseY = anchorWindow->GetClientY() - static_cast<float>(overlay->GetY());
+
+		rect.left += baseX;
+		rect.right += baseX;
+		rect.top += baseY;
+		rect.bottom += baseY;
+	}
+
+	return rect;
 }

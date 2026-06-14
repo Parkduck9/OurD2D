@@ -1,5 +1,10 @@
 ﻿#include "OverlayWindow.h"
 
+
+OverlayWindow::~OverlayWindow()
+{
+	ReleaseAlphaBuffer();
+}
 bool OverlayWindow::Create(HINSTANCE hInstance)
 {
 	const wchar_t* className = L"OverlayWindowClass";
@@ -45,7 +50,15 @@ bool OverlayWindow::Create(HINSTANCE hInstance)
 		return false;
 	}
 
-	SetLayeredWindowAttributes(hwnd, TransparentColor, 0, LWA_COLORKEY);
+	if (!CreateAlphaBuffer())
+	{
+		DestroyWindow(hwnd);
+		hwnd = nullptr;
+		return false;
+	}
+	Present();
+
+	//SetLayeredWindowAttributes(hwnd, TransparentColor, 0, LWA_COLORKEY);
 	ShowWindow(hwnd, SW_SHOWNOACTIVATE);
 	UpdateWindow(hwnd);
 
@@ -70,4 +83,97 @@ LRESULT CALLBACK OverlayWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	}
 
 	return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+
+
+HDC OverlayWindow::GetMemoryDC() const
+{
+	return memoryDc;
+}
+
+bool OverlayWindow::CreateAlphaBuffer()
+{
+	ReleaseAlphaBuffer();
+
+	BITMAPINFO bmi{};
+	bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmi.bmiHeader.biWidth = width;
+	bmi.bmiHeader.biHeight = -height;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+
+	HDC screenDc = GetDC(nullptr);
+	if (screenDc == nullptr) return false;
+
+	memoryDc = CreateCompatibleDC(screenDc);
+	bitmap = CreateDIBSection(screenDc, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
+
+	ReleaseDC(nullptr, screenDc);
+
+	if (memoryDc == nullptr || bitmap == nullptr || bits == nullptr)
+	{
+		ReleaseAlphaBuffer();
+		return false;
+	}
+
+	oldBitmap = static_cast<HBITMAP>(SelectObject(memoryDc, bitmap));
+	ZeroMemory(bits, width * height * 4);
+
+	return true;
+}
+
+void OverlayWindow::ReleaseAlphaBuffer()
+{
+	if (memoryDc != nullptr && oldBitmap != nullptr)
+	{
+		SelectObject(memoryDc, oldBitmap);
+		oldBitmap = nullptr;
+	}
+
+	if (bitmap != nullptr)
+	{
+		DeleteObject(bitmap);
+		bitmap = nullptr;
+	}
+
+	if (memoryDc != nullptr)
+	{
+		DeleteDC(memoryDc);
+		memoryDc = nullptr;
+	}
+
+	bits = nullptr;
+}
+
+void OverlayWindow::Present()
+{
+	if (hwnd == nullptr || memoryDc == nullptr) return;
+
+	HDC screenDc = GetDC(nullptr);
+	if (screenDc == nullptr) return;
+
+	POINT srcPoint{ 0, 0 };
+	POINT dstPoint{ x, y };
+	SIZE size{ width, height };
+
+	BLENDFUNCTION blend{};
+	blend.BlendOp = AC_SRC_OVER;
+	blend.SourceConstantAlpha = 255;
+	blend.AlphaFormat = AC_SRC_ALPHA;
+
+	UpdateLayeredWindow(
+		hwnd,
+		screenDc,
+		&dstPoint,
+		&size,
+		memoryDc,
+		&srcPoint,
+		0,
+		&blend,
+		ULW_ALPHA
+	);
+
+	ReleaseDC(nullptr, screenDc);
 }

@@ -6,6 +6,7 @@
 #include "WicManager.h"
 #include "D2DManager.h"
 
+
 #include <Windows.h>
 
 //임시 파일//
@@ -50,7 +51,7 @@ void GameContent::OnStart(EngineContext& engine)
 	auto* overlay = windows.GetOverlayWindow();
 	overlayRenderTargetId = windows.GetOverlayRenderTargetId();
 	//투명창에 렌더타겟 생성
-	d2d.CreateRenderTargetForWindow(overlayRenderTargetId, overlay->GetHwnd());
+	d2d.CreateRenderTargetForOverlayDC(overlayRenderTargetId, overlay->GetMemoryDC(), overlay->GetWidth(), overlay->GetHeight());
 
 
 	//투명창에 적 생성
@@ -84,6 +85,16 @@ void GameContent::OnStart(EngineContext& engine)
 	actors.push_back(std::move(playerIdle));
 	actors.push_back(std::move(playerRun));
 	actors.push_back(std::move(enemyActor));
+
+
+	//스폰 매니저
+	spawnButtonManager.Initialize(
+		overlayRenderTargetId,
+		player.GetPlayerFieldId(),
+		player.GetPlayerRegionId(),
+		L"../Resource/5090.png"
+	);
+
 }
 
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
@@ -103,15 +114,32 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		player.DefaultFieldSystem(deltaTime);
 		enemy.DefaultFieldSystem(deltaTime);
 
+		//스폰업데이트
+		spawnButtonManager.Update(engine, deltaTime);
+
+		if (spawnButtonManager.IsPlayerTouchingButton(*playerActor, engine.GetWindowManager()) && input.IsKeyPressed(player.GetPlayerRegionId(), 'E'))
+		{
+			spawnButtonManager.Clear();
+
+			state = BattleState::MoveToBattle;
+		}
+
+
 		// Enter key -> Move to Battle
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
+			//스폰 클리어
+			spawnButtonManager.Clear();
 			state = BattleState::MoveToBattle;
 		}
+
+		
 
 		break;
 
 	case BattleState::MoveToBattle:
+
+
 		// player, enemy move to battle region
 		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
 		// battle region arrived -> Change Expand Battle (BattleState)
@@ -296,15 +324,15 @@ void GameContent::OnRender(EngineContext& engine)
 	}
 
 	d2d.BeginDraw(overlayRenderTargetId);
-	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(1.0f, 0.0f, 1.0f));
-
-	// playerActor, playerActorRun 제외하고 나머지 렌더
+	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(0.0f,0.0f,0.0f,0.0f));
 	for (auto& actor : actors)
 	{
 		if (actor.get() == playerActor || actor.get() == playerActorRun) continue;
 		actor->RenderToOverlay(d2d, windows);
-		if (showCollider)
+
+		if (showCollider){
 			actor->RenderColliderToOverlay(d2d, windows);
+		}
 	}
 
 	// isMoving에 따라 하나만 렌더
@@ -313,10 +341,17 @@ void GameContent::OnRender(EngineContext& engine)
 	else
 		playerActor->RenderToOverlay(d2d, windows);
 
-	if (showCollider)
+	if (showCollider) {
 		playerActor->RenderColliderToOverlay(d2d, windows);
-
+		}
+	spawnButtonManager.Render(d2d, windows, showCollider);
 	d2d.EndDraw(overlayRenderTargetId);
+
+	auto* overlay = windows.GetOverlayWindow();
+	if (overlay != nullptr)
+	{
+		overlay->Present();
+	}
 }
 
 void GameContent::OnEnd(EngineContext& engine)
@@ -340,16 +375,19 @@ void GameContent::MovePlayerActor(EngineContext& engine, float deltaTime)
 	}
 	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_LEFT))
 	{
+		playerActor->SetFlipx(false);
 		playerActor->Move(-200.0f * deltaTime, 0); moving = true;
 	}
+
 	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_RIGHT))
 	{
+		playerActor->SetFlipx(true);
 		playerActor->Move(200.0f * deltaTime, 0); moving = true;
 	}
-
 	isMoving = moving;
 	playerActorRun->SetPosition(playerActor->GetTransform().x, playerActor->GetTransform().y);
 
+	// 클램핑
 	auto& windows = engine.GetWindowManager();
 	auto* playerWnd = windows.GetWindowById(player.GetPlayerRegionId());
 	if (playerWnd == nullptr) return;
