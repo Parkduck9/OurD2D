@@ -356,7 +356,7 @@ void GameContent::MovePlayerActor(EngineContext& engine, float deltaTime)
 	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_DOWN))
 		playerActor->Move(0, 200.0f * deltaTime);
 	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_LEFT))
-	{\
+	{
 		playerActor->SetFlipx(false);
 		playerActor->Move(-200.0f * deltaTime, 0);
 	}
