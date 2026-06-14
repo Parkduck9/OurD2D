@@ -51,10 +51,14 @@ public:
 	// Default Field (Enemy field size up, player size down)
 	void DefaultFieldSystem(float deltaTime);
 	void ClampRegionsToField();
+
+	void BattleFieldSystem(float deltaTime);
+	void PushField(float deltaTime);
+
 private :
 	// windowId -> targetX,targetY -> speed Move function (windowId -> wnd -> move)
 	void MoveToward(int wndId, float targetX, float targetY, float speed, float deltaTime);
-	
+
 
 	
 protected:

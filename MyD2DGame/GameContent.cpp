@@ -65,7 +65,9 @@ void GameContent::OnStart(EngineContext& engine)
 	//투명창에 플레이어 생성
 	auto playerActor = std::make_unique<Actor>(overlayRenderTargetId);
 	playerActor->SetAnchorWindowId(player.GetPlayerRegionId());
-	playerActor->InitializeSprite(engine, L"../Resource/알아.png", 40.0f, 0.0f, 100.0f, 100.0f);
+	playerActor->InitializeSprite(engine, L"../Resource/구구가가idle2 (1)-export-export.png", 00.0f, 0.0f, 200.0f, 112.0f);
+	playerActor->AddAnimation(L"idle", 400, 225, 30, 6, 15.0f);
+	playerActor->PlayAnimation(L"idle");
 
 	// actors에 저장
 	this->playerActor = playerActor.get();
@@ -85,7 +87,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		// playerMove for key
 		player.MovePlayerRegion(deltaTime);
 		player.DefaultFieldSystem(deltaTime);
-
+		enemy.DefaultFieldSystem(deltaTime);
 
 		// Enter key -> Move to Battle
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
@@ -169,20 +171,23 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	}
 
 	case BattleState::Battle:
-
-		/*if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
-		{
-			player.RestoreRegionsFromBattle();
-			enemy.RestoreRegionsFromBattle();
-			battleExpandT = 1.0f;
-			state = BattleState::Return;
-		}*/
+		player.BattleFieldSystem(deltaTime);
+		enemy.BattleFieldSystem(deltaTime);
 		MovePlayerActor(engine, deltaTime);
+
+
+		if (input.IsKeyPressed(player.GetPlayerRegionId(), 'Z'))
+		{
+			player.PushField(deltaTime);
+			enemy.PushField(deltaTime);
+		}
+
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
 			state = BattleState::ReturnCenter;
 		}
 		break;
+	
 	case BattleState::ReturnCenter:
 	{
 		float dx = battleStartX - playerActor->GetTransform().x;

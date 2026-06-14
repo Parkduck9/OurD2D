@@ -279,6 +279,22 @@ void WindowController::MoveToward(int windowId, float targetX, float targetY, fl
     wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
 }
 
+void WindowController::BattleFieldSystem(float deltaTime)
+{
+    fieldBoundary += 0.01f * deltaTime; // 속도 조절
+    if (fieldBoundary > 1.0f) fieldBoundary = 1.0f;
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+}
+
+void WindowController::PushField(float deltaTime)
+{
+    fieldBoundary -= 0.085f * deltaTime;
+    if (fieldBoundary < 0.0f) fieldBoundary = 0.0f;
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+}
+
 void WindowController::DefaultFieldSystem(float deltaTime)
 {
     fieldBoundary += 0.0025f * deltaTime; // 속도 조절
