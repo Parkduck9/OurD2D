@@ -36,6 +36,11 @@ public:
 		const D2D1_RECT_F& sourceRect//원본 이미지에서 잘라낼 영역
 
 	);
+	void DrawRectangle(
+		int windowId,
+		const D2D1_RECT_F& rectm
+	);
+	
 	HRESULT EndDraw(int windowId);
 
 	void ResizeRenderTarget(int windowId, UINT width, UINT height);
