@@ -4,15 +4,28 @@
 
 class InputManager;
 
+
+//창 상태 관리
+enum class WindowCloseAction
+{
+	None,
+	Hide,
+	Destory,
+	QuitApp
+};
+
+
+
 //윈도우창 설계정보(이거 기반으로 생성할 수 있게)
 struct WindowCreateInfo
 {
 
-	WindowCreateInfo(std::wstring title, float XRatio, float YRatio, float WidthRatio, float HeightRatio, bool focusOnCreate)
+	WindowCreateInfo(std::wstring title, float XRatio, float YRatio, float WidthRatio, float HeightRatio, bool focusOnCreate, WindowCloseAction closeAction = WindowCloseAction::Destory)
 	{
 		this->title = title;
 		RatioToPoint(XRatio, YRatio, WidthRatio, HeightRatio);
 		this->focusOnCreate = focusOnCreate;
+		this->closeAction = closeAction;
 	}
 
 	bool focusOnCreate = false;//창생성시 포커싱여부
@@ -24,6 +37,7 @@ struct WindowCreateInfo
 	int width  = 800; //높이
 	int height = 600; //너비
 
+	WindowCloseAction closeAction = WindowCloseAction::Destory;
 
 	void RatioToPoint(float XRatio, float YRatio, float WidthRatio, float HeightRatio)
 	{
@@ -45,8 +59,8 @@ struct WindowCreateInfo
 		height = static_cast<int>(workHeight * HeightRatio);
 
 
-		x = static_cast<int>(workWidth * XRatio)- width / 2;
-		y = static_cast<int>(workHeight * YRatio)- height / 2;
+		x = work.left + static_cast<int>(workWidth * XRatio)- width / 2;
+		y = work.top + static_cast<int>(workHeight * YRatio)- height / 2;
 
 	}
 };
@@ -65,13 +79,16 @@ public:
 		const WindowCreateInfo& info, // 창 정보 구조체
 		InputManager* inputManager
 	);
-	HWND  GetHwnd()   const;
-	int   GetID()     const;
-	float GetX()	  const;
-	float GetY()	  const;
-	float GetWidth()  const;
-	float GetHeight() const;
+	void DestroyWin();
 
+	HWND  GetHwnd()    const;
+	int   GetID()      const;
+	float GetX()	   const;
+	float GetY()	   const;
+	float GetWidth()   const;
+	float GetHeight()  const;
+	float GetClientX() const;//이미지 밀리는 문제 때문에 추가
+	float GetClientY() const;
 
 	void UpdateRect();
 
@@ -94,6 +111,16 @@ private:
 	float y = 0;//현재창의 Y좌표
 	int width = 0;
 	int height = 0;
+
+	float clientX = 0.0f;
+	float clientY = 0.0f;
+	float clientOffsetX = 0.0f;
+	float clientOffsetY = 0.0f;
+
+	void RefreshWindowCacheFromHwnd();
+	void UpdateClientCacheFromStoreRect();
+
+	WindowCloseAction closeAction = WindowCloseAction::Destory;
 
 	bool isMovingByCode = false;
 	InputManager* inputManager = nullptr;

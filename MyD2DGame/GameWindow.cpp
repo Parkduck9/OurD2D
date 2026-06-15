@@ -18,7 +18,7 @@ bool GameWindow::Create(
 	this->y = info.y;
 	this->width = info.width;
 	this->height = info.height;
-
+	this->closeAction = info.closeAction;
 	m_hwnd = CreateWindowEx(
 							0,  title,info.title.c_str(),
 							WS_POPUP | WS_CAPTION | WS_DLGFRAME,
@@ -43,8 +43,14 @@ bool GameWindow::Create(
 
 	
 	UpdateWindow(m_hwnd);
+	RefreshWindowCacheFromHwnd();
 
 	return true;
+}
+
+void GameWindow::DestroyWin()
+{
+	DestroyWindow(m_hwnd);
 }
 
 //void GameWindow::Show(int nCmdShow)
@@ -81,6 +87,44 @@ float GameWindow::GetWidth() const
 float GameWindow::GetHeight() const
 {
 	return height;
+}
+
+float GameWindow::GetClientX() const
+{
+	return clientX;
+}
+
+float GameWindow::GetClientY() const
+{
+	return clientY;
+}
+
+void GameWindow::RefreshWindowCacheFromHwnd()
+{
+	RECT rect{};
+	if (!GetWindowRect(m_hwnd, &rect))
+	{
+		return;
+	}
+
+	POINT clientOrigin{ 0,0 };
+	ClientToScreen(m_hwnd, &clientOrigin);
+
+	x = static_cast<float>(rect.left);
+	y= static_cast<float>(rect.top);
+	width = rect.right - rect.left;
+	height = rect.bottom - rect.top;
+
+	clientOffsetX = static_cast<float>(clientOrigin.x - rect.left);
+	clientOffsetY = static_cast<float>(clientOrigin.y - rect.top);
+
+	clientX = static_cast<float>(clientOrigin.x);
+	clientY = static_cast<float>(clientOrigin.y);
+}
+
+void GameWindow::UpdateClientCacheFromStoreRect() {
+	clientX = x + clientOffsetX;
+	clientY = y + clientOffsetY;
 }
 
 
@@ -120,15 +164,33 @@ LRESULT GameWindow::HandleMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 	case WM_MOVE://플레이어가 직접 움직일때에만 좌표갱신
 		if (!isMovingByCode)
 		{
-			UpdateRect();
+			//UpdateRect();
+			RefreshWindowCacheFromHwnd();
 		}
 		
 		return 0;
 
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		if (closeAction == WindowCloseAction::QuitApp)
+		{
+			PostQuitMessage(0);
+		}
 		return 0;
 
+	case WM_CLOSE:
+		switch (closeAction)
+		{
+		case WindowCloseAction::None:
+			return 0;
+		case WindowCloseAction::Hide:
+			ShowWindow(m_hwnd, SW_HIDE);
+			return 0;
+		case WindowCloseAction::Destory:
+		case WindowCloseAction::QuitApp:
+			DestroyWindow(m_hwnd);
+			return 0;
+		}
+		return 0;
 	default:
 		return DefWindowProcW(hwnd, message, wParam, lParam);
 	}
@@ -187,12 +249,34 @@ void GameWindow::MoveWindow(float XRatio, float YRatio, float Speed, float delta
 
 	float locationWidth =(workWidth * XRatio);// - width / 2;
 	float locationHeight =(workHeight * YRatio);// - height / 2;
-	x += locationWidth * Speed*deltaTime;
-	y += locationHeight* Speed * deltaTime;
+	//x += locationWidth * Speed*deltaTime;
+	//y += locationHeight* Speed * deltaTime;
+
+	//isMovingByCode = true;
+	//SetWindowPos(m_hwnd, nullptr, static_cast<int>(x), static_cast<int>(y), 0, 0, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+	//isMovingByCode = false;
+	float nextX = x + locationWidth * Speed * deltaTime;
+	float nextY = y + locationHeight * Speed * deltaTime;
 
 	isMovingByCode = true;
-	SetWindowPos(m_hwnd, nullptr, static_cast<int>(x), static_cast<int>(y), 0, 0, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+
+	if (SetWindowPos(
+		m_hwnd,
+		nullptr,
+		static_cast<int>(nextX),
+		static_cast<int>(nextY),
+		0,
+		0,
+		SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE))
+	{
+		x = nextX;
+		y = nextY;
+		UpdateClientCacheFromStoreRect();
+
+	}
+
 	isMovingByCode = false;
+
 }
 void GameWindow::ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRatio, double XRatio, double YRatio)
 {
@@ -217,7 +301,7 @@ void GameWindow::ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double
 
 	int locationWidth = static_cast<int>(workWidth * XRatio) - targetWidth / 2;
 	int locationHeigh = static_cast<int>(workHeight * YRatio) - targetHeight / 2;
-	
+
 
 	SetWindowPos(hwnd, nullptr, locationWidth, locationHeigh, targetWidth, targetHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 }

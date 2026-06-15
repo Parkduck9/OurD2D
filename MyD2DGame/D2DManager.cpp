@@ -20,6 +20,22 @@ void D2DManager::Shutdown()
 	d2dFactory.Reset();
 }
 
+void D2DManager::GetTransform(int windowId, D2D1_MATRIX_3X2_F& outTransform)
+{
+	auto iter = windowRenderTargets.find(windowId);
+	if (iter == windowRenderTargets.end()) return; 
+
+	iter->second.renderTarget->GetTransform(&outTransform);
+}
+
+void D2DManager::SetTransform(int windowId, const D2D1_MATRIX_3X2_F& transform)
+{
+	auto iter = windowRenderTargets.find(windowId);
+	if (iter == windowRenderTargets.end()) return;
+
+	iter->second.renderTarget->SetTransform(transform);
+}
+
 //·»´õÅ¸°Ù »ý¼º
 HRESULT D2DManager::CreateRenderTargetForWindow(int windowId, HWND hwnd)
 {
@@ -51,6 +67,7 @@ HRESULT D2DManager::CreateRenderTargetForWindow(int windowId, HWND hwnd)
 
 	WindowRenderData data;
 	data.hwnd = hwnd;
+	data.hwndRenderTarget = renderTarget;
 	data.renderTarget = renderTarget;
 
 	windowRenderTargets[windowId] = data;
@@ -94,6 +111,21 @@ void D2DManager::BeginDraw(int windowId)
 	iter->second.renderTarget->BeginDraw();
 }
 
+void D2DManager::DrawRectangle(
+	int windowId,
+	const D2D1_RECT_F& rect
+)
+{
+	auto iter = windowRenderTargets.find(windowId);
+	if (iter == windowRenderTargets.end()) return;
+
+	Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
+	HRESULT hr = iter->second.renderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red), &brush);
+	if (FAILED(hr)) return;
+
+	iter->second.renderTarget->DrawRectangle(rect, brush.Get(), 3.0f);
+}
+
 void D2DManager::Clear(int windowId, const D2D1_COLOR_F& color)
 {
 	auto iter = windowRenderTargets.find(windowId);
@@ -104,7 +136,8 @@ void D2DManager::Clear(int windowId, const D2D1_COLOR_F& color)
 void D2DManager::DrawBitmap(
 	int windowId,
 	ID2D1Bitmap* bitmap,
-	const D2D1_RECT_F& destRect
+	const D2D1_RECT_F& destRect,
+	float opacity
 )
 {
 	auto iter = windowRenderTargets.find(windowId);
@@ -112,7 +145,7 @@ void D2DManager::DrawBitmap(
 	if (bitmap == nullptr) return;
 
 	iter->second.renderTarget->DrawBitmap(
-		bitmap, &destRect
+		bitmap, &destRect, opacity
 	);
 }
 
@@ -121,7 +154,8 @@ void D2DManager::DrawBitmapFrame(
 	int windowId,
 	ID2D1Bitmap* bitmap,
 	const D2D1_RECT_F& destRect,
-	const D2D1_RECT_F& sourceRect
+	const D2D1_RECT_F& sourceRect,
+	float opacity
 )
 {
 	auto iter = windowRenderTargets.find(windowId);
@@ -130,7 +164,7 @@ void D2DManager::DrawBitmapFrame(
 
 	iter->second.renderTarget->DrawBitmap(
 		bitmap, &destRect,
-		1.0f,
+		opacity,
 		D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
 		&sourceRect
 		);
@@ -158,5 +192,39 @@ void D2DManager::ResizeRenderTarget(int windowId, UINT width, UINT height)
 	auto iter = windowRenderTargets.find(windowId);
 	if (iter == windowRenderTargets.end()) return;
 
-	iter->second.renderTarget->Resize(D2D1::SizeU(width, height));
+	iter->second.hwndRenderTarget->Resize(D2D1::SizeU(width, height));
+}
+
+HRESULT D2DManager::CreateRenderTargetForOverlayDC(int windowId, HDC hdc, int width, int height)
+{
+	if (d2dFactory == nullptr || hdc == nullptr)
+	{
+		return E_FAIL;
+	}
+
+	D2D1_RENDER_TARGET_PROPERTIES props =
+		D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(
+				DXGI_FORMAT_B8G8R8A8_UNORM,
+				D2D1_ALPHA_MODE_PREMULTIPLIED
+			)
+		);
+
+	Microsoft::WRL::ComPtr<ID2D1DCRenderTarget> dcRenderTarget;
+	HRESULT hr = d2dFactory->CreateDCRenderTarget(&props, &dcRenderTarget);
+	if (FAILED(hr)) return hr;
+
+	RECT rect{ 0, 0, width, height };
+	hr = dcRenderTarget->BindDC(hdc, &rect);
+	if (FAILED(hr)) return hr;
+
+	WindowRenderData data;
+	data.hdc = hdc;
+	data.dcRenderTarget = dcRenderTarget;
+	data.renderTarget = dcRenderTarget;
+
+	windowRenderTargets[windowId] = data;
+
+	return S_OK;
 }

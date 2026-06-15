@@ -14,7 +14,7 @@ public:
 	void SetSize(float width, float height);
 
 	//월드좌표(창좌표)기준으로 collider 재배치
-	D2D1_RECT_F GetWorldRect(Actor& actor) const;
+	D2D1_RECT_F GetWorldRect(const Actor& actor) const;
 
 	bool Intersects(Actor& myActor, Actor& otherActor);
 

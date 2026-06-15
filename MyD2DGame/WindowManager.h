@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "GameWindow.h"
+#include "OverlayWindow.h" //투명창
 
 class InputManager;
 
@@ -14,6 +15,13 @@ public:
 	bool Initialize(HINSTANCE hInstance, InputManager& inputManager);
 	int CreateGameWindow(const WindowCreateInfo& info);
 	GameWindow* GetWindowById(int id);
+	const GameWindow* GetWindowById(int id) const;
+
+	//투명창 관련 함수
+	bool CreateOverlayWindow();
+	OverlayWindow* GetOverlayWindow();
+	const OverlayWindow* GetOverlayWindow() const;
+	int GetOverlayRenderTargetId() const;
 
 private:
 	static LRESULT CALLBACK WindowProc(
@@ -30,4 +38,7 @@ private:
 
 	int nextWindowId = 1;
 	std::vector<std::unique_ptr<GameWindow>> windows;
+
+	std::unique_ptr<OverlayWindow> overlayWindow;
+	int overlayRenderTargetId = 0;
 };

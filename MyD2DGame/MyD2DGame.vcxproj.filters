@@ -69,6 +69,12 @@
     <ClCompile Include="Test.cpp">
       <Filter>Engine\소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="OverlayWindow.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SpwnButtonManager.cpp">
+      <Filter>Contents\소스파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -112,6 +118,15 @@
     </ClInclude>
     <ClInclude Include="Test.h">
       <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BattleState.h">
+      <Filter>Contents\헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayWindow.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnButtonManager.h">
+      <Filter>Contents\헤더파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

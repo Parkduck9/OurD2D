@@ -135,6 +135,8 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyD2DGame.cpp" />
+    <ClCompile Include="OverlayWindow.cpp" />
+    <ClCompile Include="SpwnButtonManager.cpp" />
     <ClCompile Include="Test.cpp" />
     <ClCompile Include="WicManager.cpp" />
     <ClCompile Include="WindowController.cpp" />
@@ -142,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="BattleState.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Content.h" />
     <ClInclude Include="D2DManager.h" />
@@ -150,6 +153,8 @@
     <ClInclude Include="GameContent.h" />
     <ClInclude Include="GameWindow.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="OverlayWindow.h" />
+    <ClInclude Include="SpawnButtonManager.h" />
     <ClInclude Include="SpriteAnimation.h" />
     <ClInclude Include="Test.h" />
     <ClInclude Include="WicManager.h" />

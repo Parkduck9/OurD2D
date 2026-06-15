@@ -9,6 +9,7 @@
 
 class EngineContext;
 class D2DManager;
+class WindowManager;
 
 struct Transform//액터의 기본 위치와 크기
 {
@@ -30,8 +31,10 @@ public:
 	void SetSize	(float width, float height);
 	void Move		(float x, float y);
 
-	Transform GetTransform();
+	Transform GetTransform() const;
 
+	void SetFlipx(bool flip);
+	bool GetFlipX() const;
 
 	void AddBoxCollider(float offsetX, float offsetY, float width, float height);
 	bool HasBoxCollider() const;
@@ -39,7 +42,8 @@ public:
 	BoxCollider& GetBoxCollider();
 	const BoxCollider& GetBoxCollider() const; //const Actor용
 
-
+	void SetAlpha(float alpha);
+	float GetAlpha() const;
 
 	void SetBitmap  (const Microsoft::WRL::ComPtr<ID2D1Bitmap>& bitmap);
 	void ResetBitmap();
@@ -52,8 +56,20 @@ public:
 	void Update		(float deltaTime);
 	void Render(D2DManager& d2d) const;
 
+	void SetAnchorWindowId(int windowId);
+	int GetAnchorWindowId() const;
+	void ClearAnchorWindow();
+
+	void RenderToOverlay(D2DManager& d2d, const WindowManager& windows) const;
+	void RenderColliderToOverlay(D2DManager& d2d, const WindowManager& windows);
+
+	D2D1_RECT_F GetColliderOverlayRect(const WindowManager& windows) const;
+
 private:
 	D2D1_RECT_F GetDestinationRect() const;
+	D2D1_RECT_F GetOverlayDestinationRect(const WindowManager& windows) const;
+	
+	int anchorWindowId = -1;
 
 private:
 	int windowId;
@@ -71,4 +87,10 @@ private:
 	//Collider
 	BoxCollider collider;
 	bool hasCollider = false;
+
+	//알파값
+	float alpha = 1.0f;
+
+	//flip 여부
+	bool flipX = false;
 };

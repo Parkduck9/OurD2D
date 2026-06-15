@@ -2,27 +2,31 @@
 #include "WindowController.h"
 #include "WindowManager.h"   
 #include "InputManager.h"
+#include "D2DManager.h"
 
-
-void WindowController::Initalize(EngineContext &engine)
+//EngineContext save reference
+void WindowController::Initialize(EngineContext &engine)
 {
 	context = &engine;
 }
 
+// player/enemy region save start position 
 void WindowController::SaveStartPositions(int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
     auto* playerWnd = windows.GetWindowById(playerRegionId);
     auto* enemyWnd = windows.GetWindowById(enemyRegionId);
 
+    if (playerWnd == nullptr || enemyWnd == nullptr) return;
+
     playerStartX = playerWnd->GetX();
     playerStartY = playerWnd->GetY();
     enemyStartX = enemyWnd->GetX();
     enemyStartY = enemyWnd->GetY();
-    // Ã³À½ À§Ä¡ ÇÈ¼¿ °ª ¹Þ±â
 } 
 
-void WindowController::CreatePlayerStartField() // ÇÃ·¹ÀÌ¾î ÇÊµå
+// player field 
+void WindowController::CreatePlayerStartField() 
 {
     auto& windows = context->GetWindowManager();
     playerFieldId = windows.CreateGameWindow({ 
@@ -32,7 +36,8 @@ void WindowController::CreatePlayerStartField() // ÇÃ·¹ÀÌ¾î ÇÊµå
         });
 }
 
-void WindowController::CreateEnemyStartField() // Àû ÇÊµå
+// enemy field created
+void WindowController::CreateEnemyStartField()
 {
     auto& windows = context->GetWindowManager();
     enemyFieldId = windows.CreateGameWindow({
@@ -42,24 +47,26 @@ void WindowController::CreateEnemyStartField() // Àû ÇÊµå
         });
 }
 
+// create player start region
 void WindowController::CreatePlayerStartRegion()
 {
     auto& windows = context->GetWindowManager();
 
-    playerRegionId = windows.CreateGameWindow( // ÇÃ·¹ÀÌ¾î Áö¿ª
+    playerRegionId = windows.CreateGameWindow( // ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½
         {
             L"Main Window",
             0.5, 0.8,
-            0.1, 0.15 , true
+            0.1, 0.15 , true,
+            WindowCloseAction::QuitApp
         }
     );
 }
 
-
+// create enemy start region
 void WindowController::CreateEnemyStartRegion()
 {
     auto& windows = context->GetWindowManager();
-    enemyRegionId = windows.CreateGameWindow( // Àû Áö¿ª
+    enemyRegionId = windows.CreateGameWindow( // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         {
             L"Main Window",
             0.5, 0.2,
@@ -68,7 +75,114 @@ void WindowController::CreateEnemyStartRegion()
     );
 }
 
+// BattleState change -> Created Battle field
+// if (!= -1) -> just one create
+void WindowController::CreateBattleField()
+{
+    auto& windows = context->GetWindowManager();
 
+    if (battleFieldId != -1) return;
+
+    battleFieldId = windows.CreateGameWindow(
+        {
+            L"Battle Field",
+            0.5f,
+            0.5f,
+            0.1f,
+            0.75f,
+            false
+        }
+    );
+    auto* battleWnd = windows.GetWindowById(battleFieldId);
+    if (battleWnd == nullptr) return;
+
+    context->GetD2DManager().CreateRenderTargetForWindow(battleFieldId, battleWnd->GetHwnd());
+
+    // ë Œë” íƒ€ê²Ÿ ë“±ë¡ í›„ ì¦‰ì‹œ ìž‘ê²Œ ì¶•ì†Œ
+    ResizeBattleField(0.01f);
+}
+
+// battle field height -> adjustment heightRatio 
+// expandBattle / return (state) -> see production
+void WindowController::ResizeBattleField(float heightRatio)
+{
+    auto& windows = context->GetWindowManager();
+    auto* battleWnd = windows.GetWindowById(battleFieldId);
+
+    if (battleWnd == nullptr) return;
+
+    battleWnd->ResizeWindowToMonitorRatio(
+        battleWnd->GetHwnd(),
+        0.3f,
+        heightRatio,
+        0.5f,
+        0.5f
+    );
+}
+
+//Not implemented
+void WindowController::DestroyBattleField()
+{
+    // WindowManagerì— Delete/Destroy í•¨ìˆ˜ê°€ ìžˆìœ¼ë©´ ê·¸ê±¸ ì“°ë©´ ë¨.
+    // ì˜ˆ:
+    // context->GetWindowManager().DestroyGameWindow(battleFieldId);
+    auto& windows = context->GetWindowManager();
+    auto* battleWnd = windows.GetWindowById(battleFieldId);
+
+    battleWnd->DestroyWin();
+
+    battleFieldId = -1;
+}
+
+
+void WindowController::ResizeRegionsForBattle()
+{
+    auto& windows = context->GetWindowManager();
+
+    // enemy region = BattleField ìœ„ ì ˆë°˜
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    if (playerWnd != nullptr)
+        playerWnd->ResizeWindowToMonitorRatio(
+            playerWnd->GetHwnd(),
+            0.3f, 0.375f,
+            0.5f, 0.3125f
+        );
+
+    // player region = BattleField ì•„ëž˜ ì ˆë°˜
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+    if (enemyWnd != nullptr)
+        enemyWnd->ResizeWindowToMonitorRatio(
+            enemyWnd->GetHwnd(),
+            0.3f, 0.375f,
+            0.5f, 0.6875f
+        );
+}
+
+void WindowController::RestoreRegionsFromBattle()
+{
+    auto& windows = context->GetWindowManager();
+
+    // playerëŠ” enemyStart ìœ„ì¹˜ë¡œ (êµí™˜ëœ ìƒíƒœ)
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+    if (enemyWnd != nullptr)
+        enemyWnd->ResizeWindowToMonitorRatio(
+            enemyWnd->GetHwnd(),
+            0.1f, 0.15f,
+            0.5f, 0.8f  // ì›ëž˜ player ì‹œìž‘ ìœ„ì¹˜
+        );
+
+    // enemyëŠ” playerStart ìœ„ì¹˜ë¡œ (êµí™˜ëœ ìƒíƒœ)
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    if (playerWnd != nullptr)
+        playerWnd->ResizeWindowToMonitorRatio(
+            playerWnd->GetHwnd(),
+            0.1f, 0.15f,
+            0.5f, 0.2f  // ì›ëž˜ enemy ì‹œìž‘ ìœ„ì¹˜
+        );
+}
+
+
+// Input key -> Player region Move
 void WindowController::MovePlayerRegion(float deltaTime)
 {
     auto& input = context->GetInputManager();
@@ -101,28 +215,14 @@ void WindowController::MovePlayerRegion(float deltaTime)
     {
         windows.GetWindowById(playerRegionId)->MoveWindow(0.15, 0.0, 1.3, deltaTime);
     }
-    if (input.IsKeyPressed(playerRegionId, VK_SPACE))
+    if (input.IsKeyDown(playerRegionId, VK_ESCAPE))
     {
-        windows.GetWindowById(playerRegionId)->MoveWindow(0, -40.0, 1, deltaTime);
+        windows.GetWindowById(playerRegionId)->DestroyWin();
     }
+   
 }
 
-
-void WindowController::ResizeField()
-{
-    auto& input = context->GetInputManager();
-    auto& windows = context->GetWindowManager();
-
-    if (input.IsKeyPressed(playerRegionId, VK_SHIFT))
-    {
-        windows.GetWindowById(playerRegionId)->ReSizeWindow(0.1, 0.1);
-    }
-    if (input.IsKeyPressed(playerRegionId, VK_TAB))
-    {
-        windows.GetWindowById(playerRegionId)->ReSizeWindow(0.8, 0.8);
-    }
-}
-
+// player,enemy region wnd -> change(player, enemy)
 void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -134,7 +234,7 @@ void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
     MoveToward(enemyRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
 }
 
-
+// return to start position(player, enemy)
 bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
 {
     auto& windows = context->GetWindowManager();
@@ -145,16 +245,18 @@ bool WindowController::BattleEndRegion(float deltaTime, int enemyRegionId)
     MoveToward(playerRegionId, playerStartX, playerStartY, 3.0f, deltaTime);
     MoveToward(enemyRegionId, enemyStartX, enemyStartY, 3.0f, deltaTime);
 
-    // µÑ ´Ù µµÂøÇßÀ¸¸é true ¹ÝÈ¯
+    // if inside 5px -> Arrived(true) or false
     bool playerArrived = abs(playerStartX - playerWnd->GetX()) 
         <= 5.0f && abs(playerStartY - playerWnd->GetY()) <= 5.0f;
 
     bool enemyArrived = abs(enemyStartX - enemyWnd->GetX()) 
         <= 5.0f && abs(enemyStartY - enemyWnd->GetY()) <= 5.0f;
 
-    return playerArrived && enemyArrived; // µÑ´Ù True¿©¾ß return 1 µÇµµ·Ï ¼³Á¤
+    return playerArrived && enemyArrived;  // -> true change state
 }
 
+// windowId (targetX,Y) pixel -> move Speed(speeD) 
+// if inside 5px -> Dont move
 void WindowController::MoveToward(int windowId, float targetX, float targetY, float speed, float deltaTime)
 {
     auto& windows = context->GetWindowManager();
@@ -175,4 +277,143 @@ void WindowController::MoveToward(int windowId, float targetX, float targetY, fl
     int workHeight = mi.rcWork.bottom - mi.rcWork.top;
 
     wnd->MoveWindow(dirX / workWidth, dirY / workHeight, speed, deltaTime);
+}
+
+void WindowController::BattleFieldSystem(float deltaTime)
+{
+    fieldBoundary += 0.01f * deltaTime; // ì†ë„ ì¡°ì ˆ
+    if (fieldBoundary > 1.0f) fieldBoundary = 1.0f;
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+}
+
+void WindowController::PushField(float deltaTime)
+{
+    fieldBoundary -= 0.085f * deltaTime;
+    if (fieldBoundary < 0.0f) fieldBoundary = 0.0f;
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+}
+
+void WindowController::DefaultFieldSystem(float deltaTime)
+{
+    fieldBoundary += 0.0025f * deltaTime; // ì†ë„ ì¡°ì ˆ
+    if (fieldBoundary > 1.0f) fieldBoundary = 1.0f;
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+    ClampRegionsToField();
+
+}
+
+void WindowController::ClampRegionsToField()
+{
+    auto& windows = context->GetWindowManager();
+    auto* playerFieldWnd = windows.GetWindowById(playerFieldId);
+    auto* playerRegionWnd = windows.GetWindowById(playerRegionId);
+
+    if (playerFieldWnd != nullptr && playerRegionWnd != nullptr)
+    {
+        RECT fieldRect{};
+        GetWindowRect(playerFieldWnd->GetHwnd(), &fieldRect);
+        float fieldTop = static_cast<float>(fieldRect.top);
+        float fieldBottom = static_cast<float>(fieldRect.bottom);
+        float fieldLeft = static_cast<float>(fieldRect.left);
+        float fieldRight = static_cast<float>(fieldRect.right);
+
+        float regionX = playerRegionWnd->GetX();
+        float regionY = playerRegionWnd->GetY();
+        float regionWidth = playerRegionWnd->GetWidth();
+        float regionHeight = playerRegionWnd->GetHeight();
+
+        float clampedX = regionX;
+        float clampedY = regionY;
+
+        if (regionX < fieldLeft)   clampedX = fieldLeft;
+        if (regionX + regionWidth > fieldRight)  clampedX = fieldRight - regionWidth;
+        if (regionY < fieldTop)    clampedY = fieldTop;
+        if (regionY + regionHeight > fieldBottom) clampedY = fieldBottom - regionHeight;
+
+        if (clampedX != regionX || clampedY != regionY)
+        {
+            HMONITOR hMonitor = MonitorFromWindow(playerRegionWnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);
+            MONITORINFO mi = {};
+            mi.cbSize = sizeof(MONITORINFO);
+            if (!GetMonitorInfo(hMonitor, &mi)) return;
+
+            int workWidth = mi.rcWork.right - mi.rcWork.left;
+            int workHeight = mi.rcWork.bottom - mi.rcWork.top;
+
+            float xRatio = (clampedX + regionWidth / 2.0f) / workWidth;
+            float yRatio = (clampedY + regionHeight / 2.0f) / workHeight;
+
+            playerRegionWnd->ResizeWindowToMonitorRatio(
+                playerRegionWnd->GetHwnd(),
+                0.1f, 0.15f,
+                xRatio, yRatio
+            );
+        }
+    }
+
+}
+
+
+// based on boundary -> player field resize
+// boundary size up -> player field size down
+void WindowController::ResizePlayerField(float boundary)
+{
+    auto& windows = context->GetWindowManager();
+    auto* fieldWnd = windows.GetWindowById(playerFieldId);
+    if (fieldWnd == nullptr) return;
+
+    float heightRatio = 1.0f - boundary;
+    float yRatio = boundary + heightRatio / 2.0f;
+
+    fieldWnd->ResizeWindowToMonitorRatio(
+        fieldWnd->GetHwnd(),
+        fieldWidthRatio,
+        heightRatio,
+        0.5,
+        yRatio
+    );
+}
+// based on boundary -> boundary size up = enemy field size up
+void WindowController::ResizeEnemyField(float boundary)
+{
+    auto& windows = context->GetWindowManager();
+    auto* fieldWnd = windows.GetWindowById(enemyFieldId);
+    if (fieldWnd == nullptr) return;
+
+    float heightRatio = boundary;
+    float yRatio = boundary / 2.0f; // 0ì´ ìœ„ë‹¤! ê·¸ëŸ¬ë‹ˆê¹Œ ë°˜ëŒ€ë¡œ ìŠˆìŠ‰
+    
+
+    fieldWnd->ResizeWindowToMonitorRatio(
+        fieldWnd->GetHwnd(),
+        fieldWidthRatio,
+        heightRatio,
+        0.5,
+        yRatio
+    );
+}
+
+// player, enemy region position arrived? < check
+// inside 5px -> arrived(true)
+bool WindowController::IsBattleRegionArrived(int enemyRegionId)
+{
+    auto& windows = context->GetWindowManager();
+
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    auto* enemyWnd = windows.GetWindowById(enemyRegionId);
+
+    if (playerWnd == nullptr || enemyWnd == nullptr) return false;
+
+    bool playerArrived =
+        abs(enemyStartX - playerWnd->GetX()) <= 5.0f &&
+        abs(enemyStartY - playerWnd->GetY()) <= 5.0f;
+
+    bool enemyArrived =
+        abs(playerStartX - enemyWnd->GetX()) <= 5.0f &&
+        abs(playerStartY - enemyWnd->GetY()) <= 5.0f;
+
+    return playerArrived && enemyArrived; // true -> change battlestate
 }

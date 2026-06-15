@@ -47,6 +47,42 @@ GameWindow* WindowManager::GetWindowById(int id)
 
 	return nullptr;
 }
+const GameWindow* WindowManager::GetWindowById(int id) const
+{
+	for (const auto& window : windows)
+	{
+		if (window->GetID() == id)
+		{
+			return window.get();
+		}
+	}
+
+	return nullptr;
+}
+
+bool WindowManager::CreateOverlayWindow()
+{
+	if (overlayWindow != nullptr)
+	{
+		return true;
+	}
+
+	overlayWindow = std::make_unique<OverlayWindow>();
+	return overlayWindow->Create(hInstance);
+}
+OverlayWindow* WindowManager::GetOverlayWindow()
+{
+	return overlayWindow.get();
+}
+const OverlayWindow* WindowManager::GetOverlayWindow() const
+{
+	return overlayWindow.get();
+}
+int WindowManager::GetOverlayRenderTargetId() const
+{
+	return overlayRenderTargetId;
+}
+
 
 LRESULT CALLBACK WindowManager::WindowProc(
 	HWND hwnd,
