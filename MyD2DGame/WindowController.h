@@ -48,7 +48,8 @@ public:
 
 	// (get Field) 
 	int GetBattleFieldId() const { return battleFieldId; }
-	
+	int GetEnemyFieldId() const { return enemyFieldId; }
+
 	// Default Field (Enemy field size up, player size down)
 	void DefaultFieldSystem(float deltaTime);
 	void ClampRegionsToField();

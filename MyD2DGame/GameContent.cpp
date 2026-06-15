@@ -95,7 +95,12 @@ void GameContent::OnStart(EngineContext& engine)
 		player.GetPlayerRegionId(),
 		L"../Resource/5090.png"
 	);
+	// 각각 Field채우기
+	auto* playerFieldWnd = windows.GetWindowById(player.GetPlayerFieldId());
+	auto* enemyFieldWnd = windows.GetWindowById(enemy.GetEnemyFieldId());
 
+	d2d.CreateRenderTargetForWindow(player.GetPlayerFieldId(), playerFieldWnd->GetHwnd());
+	d2d.CreateRenderTargetForWindow(enemy.GetEnemyFieldId(), enemyFieldWnd->GetHwnd());
 }
 
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
@@ -362,6 +367,14 @@ void GameContent::OnRender(EngineContext& engine)
 	{
 		overlay->Present();
 	}
+	d2d.BeginDraw(player.GetPlayerFieldId());
+	d2d.Clear(player.GetPlayerFieldId(), D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f)); // blue
+	d2d.EndDraw(player.GetPlayerFieldId());
+
+	d2d.BeginDraw(enemy.GetEnemyFieldId());
+	d2d.Clear(enemy.GetEnemyFieldId(), D2D1::ColorF(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+	d2d.EndDraw(enemy.GetEnemyFieldId());
+
 }
 
 void GameContent::OnEnd(EngineContext& engine)
