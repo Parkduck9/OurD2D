@@ -3,8 +3,7 @@
 #include "InputManager.h"
 
 
-bool GameWindow::Create(
-						HINSTANCE hInstance,
+bool GameWindow::Create(HINSTANCE hInstance,
 						const wchar_t* title,
 						int	id,
 						const WindowCreateInfo& info,
