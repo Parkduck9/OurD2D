@@ -87,6 +87,5 @@ protected:
 
 	
 	float fieldBoundary = 0.50f;  // 경계선 Y 비율 (0~1), 이 하나로 두 필드 크기 결정
-	float fixedFieldTime = 0.0f; // Field size renewal timer
 
 };

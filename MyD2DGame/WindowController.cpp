@@ -391,6 +391,7 @@ void WindowController::ClampRegionsToField()
 
 // based on boundary -> player field resize
 // boundary size up -> player field size down
+
 void WindowController::ResizePlayerField(float boundary)
 {
     auto& windows = context->GetWindowManager();

@@ -33,7 +33,6 @@ private:
 
 
 	
-	float battleRegionHeight = 0.15f; //Battle region height ratio (0~1)
 	float battleExpandT = 0.0f; // Battle field expansion timer (0~1)
 	// Battle Field height interpolation use
 	float battleExpandSpeed = 1.0f; // battle field expansion speed
