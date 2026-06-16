@@ -454,6 +454,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		if (player.BattleEndRegion(deltaTime, enemy.GetEnemyRegionId()))
 		{
 			battleExpandT = 0.0f;
+			enemy.ResetEnemyRegionClamp();
 			state = BattleState::Explore;
 		}
 		break;

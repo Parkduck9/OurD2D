@@ -414,6 +414,52 @@ void WindowController::ClampRegionsToField()
         }
     }
 
+    // enemy region: enemy field 하단이 올라와 닿으면 따라 올라가고, 다시 내려가면 원래 위치까지만 따라옴
+    auto* enemyFieldWnd = windows.GetWindowById(enemyFieldId);
+    auto* enemyRegionWnd = windows.GetWindowById(enemyRegionId);
+
+    if (enemyFieldWnd != nullptr && enemyRegionWnd != nullptr)
+    {
+        RECT fieldRect{};
+        GetWindowRect(enemyFieldWnd->GetHwnd(), &fieldRect);
+        float fieldBottom = static_cast<float>(fieldRect.bottom);
+
+        float regionX = enemyRegionWnd->GetX();
+        float regionY = enemyRegionWnd->GetY();
+        float regionWidth = enemyRegionWnd->GetWidth();
+        float regionHeight = enemyRegionWnd->GetHeight();
+
+        // 초기 Y 저장 (처음 한 번만)
+        if (enemyRegionInitialY < 0.0f)
+            enemyRegionInitialY = regionY;
+
+        // field 하단 기준으로 region이 딱 붙을 Y
+        float desiredY = fieldBottom - regionHeight;
+
+        // field가 줄어들면 따라 올라가고, 커지면 따라 내려오되 초기 위치에서 멈춤
+        float clampedY = (desiredY < enemyRegionInitialY) ? desiredY : enemyRegionInitialY;
+
+        if (clampedY != regionY)
+        {
+            HMONITOR hMonitor = MonitorFromWindow(enemyRegionWnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);
+            MONITORINFO mi = {};
+            mi.cbSize = sizeof(MONITORINFO);
+            if (!GetMonitorInfo(hMonitor, &mi)) return;
+
+            int workWidth = mi.rcWork.right - mi.rcWork.left;
+            int workHeight = mi.rcWork.bottom - mi.rcWork.top;
+
+            float xRatio = (regionX + regionWidth / 2.0f) / workWidth;
+            float yRatio = (clampedY + regionHeight / 2.0f) / workHeight;
+
+            enemyRegionWnd->ResizeWindowToMonitorRatio(
+                enemyRegionWnd->GetHwnd(),
+                0.1f, 0.15f,
+                xRatio, yRatio
+            );
+        }
+    }
+
 }
 
 
