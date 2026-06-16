@@ -301,10 +301,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			prevEnemyClientX = -1.0f;
 			prevEnemyClientY = -1.0f;
 
-			// fieldBoundary 리셋: 양쪽 0.5로 동일하게 시작
-			player.ResetFieldBoundary();
-			enemy.ResetFieldBoundary();
-
 			battleTimer = 20.0f;
 			state = BattleState::Battle;
 		}
