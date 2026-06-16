@@ -108,6 +108,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		player.DefaultFieldSystem(deltaTime);
 		enemy.DefaultFieldSystem(deltaTime);
 
+		audiomanger.PlayBGM(L"../Resource/평시.wav");
 		//스폰업데이트
 		spawnButtonManager.Update(engine, deltaTime);
 
@@ -133,7 +134,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 
 	case BattleState::MoveToBattle:
 
-
+		audiomanger.PlayBGM(L"../Resource/줄다리기.wav");
 		// player, enemy move to battle region
 		player.BattleRegion(deltaTime, enemy.GetEnemyRegionId());
 		// battle region arrived -> Change Expand Battle (BattleState)
