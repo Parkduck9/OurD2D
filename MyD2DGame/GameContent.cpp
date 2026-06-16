@@ -301,6 +301,21 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			prevEnemyClientX = -1.0f;
 			prevEnemyClientY = -1.0f;
 
+			// 도로운전 초기화
+			ClearDrivingObjects();
+			battleElapsed    = 0.0f;
+			driveSpawnIndex  = 0;
+			battleOrangeTimer = battleOrangeInterval; // 바로 안 던지게 첫 간격만큼 대기
+
+			// Battle 진입 시 player region top Y 저장 (경고 위치 기준)
+			{
+				auto& wins = engine.GetWindowManager();
+				auto* overlay   = wins.GetOverlayWindow();
+				auto* playerWnd = wins.GetWindowById(player.GetPlayerRegionId());
+				if (overlay && playerWnd)
+					battlePlayerRegionY = playerWnd->GetY() - static_cast<float>(overlay->GetY());
+			}
+
 			battleTimer = 20.0f;
 			state = BattleState::Battle;
 		}
@@ -357,40 +372,61 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		UpdateEnemyOranges(engine, deltaTime);
 		UpdatePlayerSpears(engine, deltaTime);
 
+		battleElapsed += deltaTime;
+
+		// Battle 귤 (간격 길고 데미지 큼)
+		battleOrangeTimer -= deltaTime;
+		if (battleOrangeTimer <= 0.0f)
+		{
+			SpawnEnemyOrange(engine);
+			battleOrangeTimer = battleOrangeInterval;
+		}
+		UpdateEnemyOranges(engine, deltaTime);
+
+		// 경고/차 스폰 타이밍: 차=2,5,8,11,12,14초 기준 0.3초 전 경고
+		static constexpr float warningTimes[6] = { 1.7f, 4.7f, 7.7f, 10.7f, 11.7f, 13.7f };
+		if (driveSpawnIndex < 6 && !drivingWarning.active && !drivingCar.active)
+		{
+			if (battleElapsed >= warningTimes[driveSpawnIndex])
+				SpawnDrivingWarning(engine);
+		}
+		if (drivingWarning.active)
+		{
+			drivingWarning.timer -= deltaTime;
+			if (drivingWarning.timer <= 0.0f)
+			{
+				drivingWarning.active = false;
+				SpawnDrivingCar(engine);
+				driveSpawnIndex++;
+			}
+		}
+		if (drivingCar.active)
+			UpdateDrivingCar(engine, deltaTime);
+
 		battleTimer -= deltaTime;
 
 		// 승패 조건 체크 (Return 애니메이션 후 창 처리)
 		if (player.IsPlayerFieldSmallerThanRegion())
 		{
 			playerFieldLost = true;
-			oranges.clear();
-			spears.clear();
-			returnRegionT = 1.0f;
-			returnFieldT = 1.0f;
-			regionShrinkFinished = false;
+			oranges.clear(); spears.clear(); ClearDrivingObjects();
+			returnRegionT = 1.0f; returnFieldT = 1.0f; regionShrinkFinished = false;
 			state = BattleState::ReturnCenter;
 			break;
 		}
 		if (enemy.IsEnemyFieldSmallerThanRegion())
 		{
 			enemyFieldLost = true;
-			oranges.clear();
-			spears.clear();
-			returnRegionT = 1.0f;
-			returnFieldT = 1.0f;
-			regionShrinkFinished = false;
+			oranges.clear(); spears.clear(); ClearDrivingObjects();
+			returnRegionT = 1.0f; returnFieldT = 1.0f; regionShrinkFinished = false;
 			state = BattleState::ReturnCenter;
 			break;
 		}
 
 		if (battleTimer <= 0.0f || input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
-			oranges.clear();
-			spears.clear();
-
-			returnRegionT = 1.0f;
-			returnFieldT = 1.0f;
-			regionShrinkFinished = false;
+			oranges.clear(); spears.clear(); ClearDrivingObjects();
+			returnRegionT = 1.0f; returnFieldT = 1.0f; regionShrinkFinished = false;
 			state = BattleState::ReturnCenter;
 		}
 
@@ -643,6 +679,24 @@ void GameContent::OnRender(EngineContext& engine)
 		if (showCollider)
 			playerActor->RenderColliderToOverlay(d2d, windows);
 
+		// 도로롱 경고 렌더
+		if (drivingWarning.active && drivingWarning.actor)
+		{
+			drivingWarning.actor->RenderToOverlay(d2d, windows);
+			d2d.DrawRectangle(overlayRenderTargetId, drivingWarning.warnRect);
+		}
+
+		// 도로롱 차 렌더
+		if (drivingCar.active && drivingCar.actor)
+		{
+			drivingCar.actor->RenderToOverlay(d2d, windows);
+			if (showCollider)
+			{
+				D2D1_RECT_F r = drivingCar.actor->GetBoxCollider().GetWorldRect(*drivingCar.actor);
+				d2d.DrawRectangle(overlayRenderTargetId, r);
+			}
+		}
+
 		spawnButtonManager.Render(d2d, windows, showCollider);
 	}
 	d2d.EndDraw(overlayRenderTargetId);
@@ -744,8 +798,8 @@ void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)
 			}
 			else
 			{
-				player.ApplyFieldPenalty(0.01f);
-				enemy.ApplyFieldPenalty(0.01f);
+				player.ApplyFieldPenalty(battleOrangeDamage);
+				enemy.ApplyFieldPenalty(battleOrangeDamage);
 			}
 		}
 	}
@@ -1101,4 +1155,105 @@ void GameContent::UpdateEnemyExplore(EngineContext& engine, float deltaTime)
     // walk 액터 위치 동기화
     if (enemyActorWalk)
         enemyActorWalk->SetPosition(enemyActorWalk->GetTransform().x, enemyActorWalk->GetTransform().y);
+}
+
+void GameContent::SpawnDrivingWarning(EngineContext& engine)
+{
+    auto& windows = engine.GetWindowManager();
+    auto* overlay      = windows.GetOverlayWindow();
+    auto* battleWnd    = windows.GetWindowById(player.GetBattleFieldId());
+    if (!overlay || !battleWnd) return;
+
+    float ovX = static_cast<float>(overlay->GetX());
+    float ovY = static_cast<float>(overlay->GetY());
+
+    float bfLeft   = battleWnd->GetClientX() - ovX;
+    float bfRight  = bfLeft + battleWnd->GetWidth();
+    float bfBottom = battleWnd->GetClientY() - ovY + battleWnd->GetHeight();
+
+    // 플레이어 overlay X 기준 +-200 범위 내 랜덤, battlefield 안으로 클램핑
+    D2D1_RECT_F playerRect = playerActor->GetColliderOverlayRect(windows);
+    float playerCenterX = (playerRect.left + playerRect.right) * 0.5f - carW * 0.5f;
+    float offset = static_cast<float>((rand() % 161) - 80); // -80 ~ +80
+    float spawnX = playerCenterX + offset;
+    spawnX = max(bfLeft, min(spawnX, bfRight - carW));
+    drivingWarning.carSpawnX = spawnX;
+
+    // 경고 이미지: player region top Y (battle 진입 시 저장)
+    float warnY = battlePlayerRegionY;
+
+    // 경고 사각형: battlefield bottom 조금 위 ~ 경고 이미지 조금 위
+    drivingWarning.warnRect = D2D1::RectF(
+        spawnX,
+        warnY - 5.0f,
+        spawnX + carW,
+        bfBottom - 5.0f
+    );
+
+    // 경고 스프라이트 생성
+    drivingWarning.actor = std::make_unique<Actor>(overlayRenderTargetId);
+    drivingWarning.actor->InitializeSprite(engine,
+        L"../Resource/도로롱위험위험해.png",
+        spawnX, warnY, carW, warnH);
+
+    drivingWarning.timer  = 0.3f;
+    drivingWarning.active = true;
+}
+
+void GameContent::SpawnDrivingCar(EngineContext& engine)
+{
+    auto& windows  = engine.GetWindowManager();
+    auto* overlay  = windows.GetOverlayWindow();
+    auto* battleWnd = windows.GetWindowById(player.GetBattleFieldId());
+    if (!overlay || !battleWnd) return;
+
+    float ovY    = static_cast<float>(overlay->GetY());
+    float bfBottom = battleWnd->GetClientY() - ovY + battleWnd->GetHeight();
+
+    drivingCar.actor = std::make_unique<Actor>(overlayRenderTargetId);
+    drivingCar.actor->InitializeSprite(engine,
+        L"../Resource/도로롱도로운전.png",
+        drivingWarning.carSpawnX, bfBottom, carW, carH);
+    drivingCar.actor->AddBoxCollider(0.0f, 0.0f, carW, carH);
+    drivingCar.active = true;
+}
+
+void GameContent::UpdateDrivingCar(EngineContext& engine, float deltaTime)
+{
+    if (!drivingCar.actor) return;
+
+    auto& windows  = engine.GetWindowManager();
+    auto* overlay  = windows.GetOverlayWindow();
+
+    // 위쪽으로 이동
+    drivingCar.actor->Move(0.0f, -drivingCar.speed * deltaTime);
+
+    // 플레이어 충돌 체크
+    D2D1_RECT_F carRect    = drivingCar.actor->GetBoxCollider().GetWorldRect(*drivingCar.actor);
+    D2D1_RECT_F playerRect = playerActor->GetColliderOverlayRect(windows);
+
+    bool hit = carRect.left   < playerRect.right  &&
+               carRect.right  > playerRect.left   &&
+               carRect.top    < playerRect.bottom &&
+               carRect.bottom > playerRect.top;
+
+    if (hit)
+    {
+        player.ApplyFieldPenalty(0.07f);
+        enemy.ApplyFieldPenalty(0.07f);
+        ClearDrivingObjects();
+        return;
+    }
+
+    // enemy field 상단 위로 벗어나면 소멸
+    auto* enemyFieldWnd = windows.GetWindowById(enemy.GetEnemyFieldId());
+    if (overlay && enemyFieldWnd)
+    {
+        float enemyFieldTop = enemyFieldWnd->GetClientY() - static_cast<float>(overlay->GetY());
+        if (carRect.bottom < enemyFieldTop)
+        {
+            drivingCar.active  = false;
+            drivingCar.actor   = nullptr;
+        }
+    }
 }

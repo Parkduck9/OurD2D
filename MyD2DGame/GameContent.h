@@ -34,7 +34,7 @@ private:
 		float targetY = 0.0f;
 
 		float elapsed = 0.0f; //날아간 시간
-		float duration = 0.5f; // 총 비행 시간
+		float duration = 1.2f; // 총 비행 시간
 
 		float arcHeight = 180.0f; // 포물선 높이
 		bool falling = false;
@@ -48,6 +48,10 @@ private:
 
 	float enemyAttackTimer = 0.0f;
 	float enemyAttackInterval = 1.5f;
+
+	float battleOrangeTimer = 0.0f;
+	static constexpr float battleOrangeInterval = 2.5f; // Battle 귤 간격
+	static constexpr float battleOrangeDamage   = 0.06f; // Battle 귤 데미지
 	void SpawnEnemyOrange(EngineContext& engine);
 
 	struct PlayerSpear // 플레이어 창 구조체
@@ -134,4 +138,39 @@ private:
 	// Battle 승패 플래그 (Return 애니메이션 후 처리)
 	bool playerFieldLost = false;
 	bool enemyFieldLost = false;
+
+	// 도로롱 도로 운전 (battle 전용)
+	struct DrivingCar
+	{
+		std::unique_ptr<Actor> actor;
+		bool active = false;
+		float speed = 1600.0f;
+	};
+	struct DrivingWarning
+	{
+		std::unique_ptr<Actor> actor; // 도로롱위험위험해 스프라이트
+		bool  active = false;
+		float timer = 0.0f;          // 차 등장까지 남은 시간
+		float carSpawnX = 0.0f;      // 차가 나올 overlay X
+		D2D1_RECT_F warnRect = {};   // 경고 사각형 (overlay 좌표)
+	};
+
+	DrivingCar    drivingCar;
+	DrivingWarning drivingWarning;
+	float battleElapsed   = 0.0f;
+	int   driveSpawnIndex = 0;
+	float battlePlayerRegionY = 0.0f; // Battle 진입 시 player region top Y (overlay)
+
+	static constexpr float carW = 130.0f;
+	static constexpr float carH = 100.0f;
+	static constexpr float warnH = 80.0f;
+
+	void SpawnDrivingWarning(EngineContext& engine);
+	void SpawnDrivingCar(EngineContext& engine);
+	void UpdateDrivingCar(EngineContext& engine, float deltaTime);
+	void ClearDrivingObjects()
+	{
+		drivingCar.active = false;    drivingCar.actor    = nullptr;
+		drivingWarning.active = false; drivingWarning.actor = nullptr;
+	}
 };
