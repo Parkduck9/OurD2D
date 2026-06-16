@@ -339,6 +339,19 @@ void WindowController::ApplyFieldPenalty(float amount)
     ResizeRegionsForBattleField(fieldBoundary);
 }
 
+void WindowController::ApplyFieldPenaltyOnly(float amount)
+{
+    fieldBoundary += amount;
+
+    if (fieldBoundary < 0.0f)
+    {
+        fieldBoundary = 0.0f;
+    }
+
+    ResizePlayerField(fieldBoundary);
+    ResizeEnemyField(fieldBoundary);
+}
+
 
 
 

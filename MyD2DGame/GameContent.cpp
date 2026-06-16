@@ -123,12 +123,22 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		player.DefaultFieldSystem(deltaTime);
 		enemy.DefaultFieldSystem(deltaTime);
 
+		enemyAttackTimer -= deltaTime;
+		if (enemyAttackTimer <= 0.0f)
+		{
+			SpawnEnemyOrange(engine);
+			enemyAttackTimer = 0.3f + static_cast<float>(rand()) / RAND_MAX * 0.4f;
+		}
+
+		UpdateEnemyOranges(engine, deltaTime);
+
 		//스폰업데이트
 		spawnButtonManager.Update(engine, deltaTime);
 
 		if (spawnButtonManager.IsPlayerTouchingButton(*playerActor, engine.GetWindowManager()) && input.IsKeyPressed(player.GetPlayerRegionId(), 'E'))
 		{
 			spawnButtonManager.Clear();
+			oranges.clear();
 
 			battleStartX = playerActor->GetTransform().x;
 			battleStartY = playerActor->GetTransform().y;
@@ -144,6 +154,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_RETURN))
 		{
 			spawnButtonManager.Clear();
+			oranges.clear();
 
 			battleStartX = playerActor->GetTransform().x;
 			battleStartY = playerActor->GetTransform().y;
@@ -550,7 +561,8 @@ void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)
 	{
 		if (orange.falling)
 		{
-			orange.actor->Move(0.0f, orange.fallSpeed * deltaTime);
+			orange.velY += 980.0f * deltaTime; // 중력
+			orange.actor->Move(orange.velX * deltaTime, orange.velY * deltaTime);
 			continue;
 		}
 
@@ -561,7 +573,11 @@ void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)
 		if (t >= 1.0f)
 		{
 			orange.falling = true;
-			orange.actor->Move(0.0f, orange.fallSpeed * deltaTime);
+			// 포물선 끝 시점 속도를 이어받음
+			orange.velX = (orange.targetX - orange.startX) / orange.duration;
+			orange.velY = (orange.targetY - orange.startY) / orange.duration
+				+ orange.arcHeight * 3.141592f / orange.duration;
+			orange.actor->Move(orange.velX * deltaTime, orange.velY * deltaTime);
 			continue;
 		}
 
@@ -586,10 +602,28 @@ void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)
 		{
 			orange.hasHitPlayer = true;
 
-			player.ApplyFieldPenalty(0.01f);
-			enemy.ApplyFieldPenalty(0.01f);
+			if (state == BattleState::Explore)
+			{
+				player.ApplyFieldPenaltyOnly(0.01f);
+				enemy.ApplyFieldPenaltyOnly(0.01f);
+			}
+			else
+			{
+				player.ApplyFieldPenalty(0.01f);
+				enemy.ApplyFieldPenalty(0.01f);
+			}
 		}
 	}
+
+	auto* overlay = engine.GetWindowManager().GetOverlayWindow();
+	float overlayHeight = overlay ? static_cast<float>(overlay->GetHeight()) : 9999.0f;
+
+	oranges.erase(
+		std::remove_if(oranges.begin(), oranges.end(), [overlayHeight](const EnemyOrange& o) {
+			return o.actor->GetTransform().y > overlayHeight;
+		}),
+		oranges.end()
+	);
 }
 
 void GameContent::SpawnEnemyOrange(EngineContext& engine)

@@ -38,6 +38,8 @@ private:
 		float arcHeight = 180.0f; // 포물선 높이
 		bool falling = false;
 		float fallSpeed = 400.0f;
+		float velX = 0.0f; // 포물선 종료 시점 속도
+		float velY = 0.0f;
 		bool hasHitPlayer = false; // 맞았느지 체크용
 	};
 	std::vector<EnemyOrange> oranges;
