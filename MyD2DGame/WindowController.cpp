@@ -293,7 +293,7 @@ void WindowController::BattleFieldSystem(float deltaTime)
 
 void WindowController::PushField(float deltaTime)
 {
-    fieldBoundary -= 0.1f * deltaTime;
+    fieldBoundary -= 0.4f * deltaTime;
     if (fieldBoundary < 0.0f) fieldBoundary = 0.0f;
     ResizePlayerField(fieldBoundary);
     ResizeEnemyField(fieldBoundary);
@@ -518,4 +518,112 @@ bool WindowController::IsBattleRegionArrived(int enemyRegionId)
         abs(playerStartY - enemyWnd->GetY()) <= 5.0f;
 
     return playerArrived && enemyArrived; // true -> change battlestate
+}
+
+// Explore 기준 region 높이(0.15 * 모니터)를 고정 기준으로 사용
+// → Battle에서 region이 확대돼도 기준이 흔들리지 않음
+bool WindowController::IsPlayerFieldSmallerThanRegion() const
+{
+    auto& windows = context->GetWindowManager();
+    auto* playerFieldWnd = windows.GetWindowById(playerFieldId);
+    if (playerFieldWnd == nullptr) return false;
+
+    HMONITOR hMon = MonitorFromWindow(playerFieldWnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = {};
+    mi.cbSize = sizeof(MONITORINFO);
+    if (!GetMonitorInfo(hMon, &mi)) return false;
+
+    float exploreRegionH = (mi.rcWork.bottom - mi.rcWork.top) * 0.15f;
+    return playerFieldWnd->GetHeight() < exploreRegionH;
+}
+
+bool WindowController::IsEnemyFieldSmallerThanRegion() const
+{
+    auto& windows = context->GetWindowManager();
+    auto* enemyFieldWnd = windows.GetWindowById(enemyFieldId);
+    if (enemyFieldWnd == nullptr) return false;
+
+    HMONITOR hMon = MonitorFromWindow(enemyFieldWnd->GetHwnd(), MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = {};
+    mi.cbSize = sizeof(MONITORINFO);
+    if (!GetMonitorInfo(hMon, &mi)) return false;
+
+    float exploreRegionH = (mi.rcWork.bottom - mi.rcWork.top) * 0.15f;
+    return enemyFieldWnd->GetHeight() < exploreRegionH;
+}
+
+void WindowController::DestroyPlayerFieldAndRegion(EngineContext& engine)
+{
+    auto& windows = engine.GetWindowManager();
+    auto& d2d = engine.GetD2DManager();
+
+    if (playerFieldId != -1)
+    {
+        d2d.RemoveRenderTarget(playerFieldId);
+        auto* wnd = windows.GetWindowById(playerFieldId);
+        if (wnd != nullptr) wnd->DestroyWin();
+        playerFieldId = -1;
+    }
+    if (playerRegionId != -1)
+    {
+        auto* wnd = windows.GetWindowById(playerRegionId);
+        if (wnd != nullptr)
+        {
+            wnd->SetCloseAction(WindowCloseAction::None); // QuitApp 막기
+            wnd->DestroyWin();
+        }
+        playerRegionId = -1;
+    }
+}
+
+void WindowController::DestroyEnemyFieldAndRegion(EngineContext& engine)
+{
+    auto& windows = engine.GetWindowManager();
+    auto& d2d = engine.GetD2DManager();
+
+    if (enemyFieldId != -1)
+    {
+        d2d.RemoveRenderTarget(enemyFieldId);
+        auto* wnd = windows.GetWindowById(enemyFieldId);
+        if (wnd != nullptr) wnd->DestroyWin();
+        enemyFieldId = -1;
+    }
+    if (enemyRegionId != -1)
+    {
+        auto* wnd = windows.GetWindowById(enemyRegionId);
+        if (wnd != nullptr) wnd->DestroyWin();
+        enemyRegionId = -1;
+    }
+}
+
+void WindowController::ExpandEnemyWindowsFull()
+{
+    auto& windows = context->GetWindowManager();
+
+    auto* enemyFieldWnd = windows.GetWindowById(enemyFieldId);
+    if (enemyFieldWnd != nullptr)
+        enemyFieldWnd->ResizeWindowToMonitorRatio(
+            enemyFieldWnd->GetHwnd(), 1.007f, 1.0f, 0.5f, 0.5f);
+
+    auto* enemyRegionWnd = windows.GetWindowById(enemyRegionId);
+    if (enemyRegionWnd != nullptr)
+        enemyRegionWnd->ResizeWindowToMonitorRatio(
+            enemyRegionWnd->GetHwnd(), 1.0f, 1.0f, 0.5f, 0.5f);
+}
+
+void WindowController::ExpandPlayerWindowsFull()
+{
+    auto& windows = context->GetWindowManager();
+
+    // field만 전체화면으로 확장
+    auto* playerFieldWnd = windows.GetWindowById(playerFieldId);
+    if (playerFieldWnd != nullptr)
+        playerFieldWnd->ResizeWindowToMonitorRatio(
+            playerFieldWnd->GetHwnd(), 1.007f, 1.0f, 0.5f, 0.5f);
+
+    // region은 explore 크기로 복원 (플레이어가 이동 가능)
+    auto* playerRegionWnd = windows.GetWindowById(playerRegionId);
+    if (playerRegionWnd != nullptr)
+        playerRegionWnd->ResizeWindowToMonitorRatio(
+            playerRegionWnd->GetHwnd(), 0.1f, 0.15f, 0.5f, 0.5f);
 }

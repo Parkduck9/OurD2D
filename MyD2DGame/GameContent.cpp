@@ -207,7 +207,15 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			state = BattleState::MoveToBattle;
 		}
 
-		
+		// EnemyWin 조건: player field가 player region보다 같거나 작아질 때
+		if (player.IsPlayerFieldSmallerThanRegion())
+		{
+			spawnButtonManager.Clear();
+			oranges.clear();
+			player.DestroyPlayerFieldAndRegion(engine);
+			enemy.ExpandEnemyWindowsFull();
+			state = BattleState::EnemyWin;
+		}
 
 		break;
 
@@ -293,6 +301,10 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			prevEnemyClientX = -1.0f;
 			prevEnemyClientY = -1.0f;
 
+			// fieldBoundary 리셋: 양쪽 0.5로 동일하게 시작
+			player.ResetFieldBoundary();
+			enemy.ResetFieldBoundary();
+
 			battleTimer = 20.0f;
 			state = BattleState::Battle;
 		}
@@ -350,6 +362,30 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		UpdatePlayerSpears(engine, deltaTime);
 
 		battleTimer -= deltaTime;
+
+		// 승패 조건 체크 (Return 애니메이션 후 창 처리)
+		if (player.IsPlayerFieldSmallerThanRegion())
+		{
+			playerFieldLost = true;
+			oranges.clear();
+			spears.clear();
+			returnRegionT = 1.0f;
+			returnFieldT = 1.0f;
+			regionShrinkFinished = false;
+			state = BattleState::ReturnCenter;
+			break;
+		}
+		if (enemy.IsEnemyFieldSmallerThanRegion())
+		{
+			enemyFieldLost = true;
+			oranges.clear();
+			spears.clear();
+			returnRegionT = 1.0f;
+			returnFieldT = 1.0f;
+			regionShrinkFinished = false;
+			state = BattleState::ReturnCenter;
+			break;
+		}
 
 		if (battleTimer <= 0.0f || input.IsKeyPressed(player.GetPlayerRegionId(), VK_BACK))
 		{
@@ -502,13 +538,46 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		{
 			battleExpandT = 0.0f;
 			enemy.ResetEnemyRegionClamp();
-			state = BattleState::Explore;
+
+			if (playerFieldLost)
+			{
+				playerFieldLost = false;
+				player.DestroyPlayerFieldAndRegion(engine);
+				enemy.ExpandEnemyWindowsFull();
+				state = BattleState::EnemyWin;
+			}
+			else if (enemyFieldLost)
+			{
+				enemyFieldLost = false;
+				enemy.DestroyEnemyFieldAndRegion(engine);
+				player.ExpandPlayerWindowsFull();
+				state = BattleState::PlayerWin;
+			}
+			else
+			{
+				state = BattleState::Explore;
+			}
 		}
 		break;
+
+	case BattleState::EnemyWin:
+		// enemy region/field만 남아서 Explore처럼 튕겨다님
+		UpdateEnemyExplore(engine, deltaTime);
+		break;
+
+	case BattleState::PlayerWin:
+		// player region/field만 남아서 플레이어 계속 조작 가능
+		// DefaultFieldSystem 호출 안 함 → field 크기 고정 (더 안 줄어듦)
+		player.MovePlayerRegion(deltaTime);
+		MovePlayerActor(engine, deltaTime, 50.0f);
+		break;
 	}
-	// actor update ( maybe delete ? )
+	// actor update
 	for (auto& actor : actors)
 	{
+		// EnemyWin: player 창이 없으므로 player 액터 업데이트 스킵
+		if (state == BattleState::EnemyWin &&
+			(actor.get() == playerActor || actor.get() == playerActorRun)) continue;
 		actor->Update(deltaTime);
 	}
 	
@@ -528,51 +597,58 @@ void GameContent::OnRender(EngineContext& engine)
 
 	d2d.BeginDraw(overlayRenderTargetId);
 	d2d.Clear(overlayRenderTargetId, D2D1::ColorF(0.0f,0.0f,0.0f,0.0f));
+	bool isExploreLike = (state == BattleState::Explore || state == BattleState::EnemyWin);
+	bool enemyWindowsAlive = (state != BattleState::PlayerWin);
+	bool playerWindowsAlive = (state != BattleState::EnemyWin);
+
 	for (auto& actor : actors)
 	{
 		if (actor.get() == playerActor || actor.get() == playerActorRun) continue;
-		// Explore: walk 액터만, 그 외: idle 액터만
-		if (state == BattleState::Explore && actor.get() == enemyActor) continue;
-		if (state != BattleState::Explore && actor.get() == enemyActorWalk) continue;
+
+		bool isEnemyActor = (actor.get() == enemyActor || actor.get() == enemyActorWalk);
+		if (isEnemyActor && !enemyWindowsAlive) continue;
+
+		if (isExploreLike && actor.get() == enemyActor) continue;
+		if (!isExploreLike && actor.get() == enemyActorWalk) continue;
+
 		actor->RenderToOverlay(d2d, windows);
 
-		if (showCollider){
+		if (showCollider && playerWindowsAlive && enemyWindowsAlive)
 			actor->RenderColliderToOverlay(d2d, windows);
-		}
 	}
-	for (auto& orange : oranges)
-	{
-		auto& d2d = engine.GetD2DManager();
-		auto& windows = engine.GetWindowManager();
-		orange.actor->RenderToOverlay(d2d, windows);
-		if (showCollider)  // 오버레이 좌표 이용해서 따로 생성
-		{
-			D2D1_RECT_F rect =
-				orange.actor->GetBoxCollider().GetWorldRect(*orange.actor);
 
-			d2d.DrawRectangle(overlayRenderTargetId, rect);
-		}
-	}
-	for (auto& spear : spears)
+	if (playerWindowsAlive)
 	{
-		spear.actor->RenderToOverlay(d2d, windows);
+		for (auto& orange : oranges)
+		{
+			orange.actor->RenderToOverlay(d2d, windows);
+			if (showCollider)
+			{
+				D2D1_RECT_F rect = orange.actor->GetBoxCollider().GetWorldRect(*orange.actor);
+				d2d.DrawRectangle(overlayRenderTargetId, rect);
+			}
+		}
+		for (auto& spear : spears)
+		{
+			spear.actor->RenderToOverlay(d2d, windows);
+			if (showCollider)
+			{
+				D2D1_RECT_F rect = spear.actor->GetBoxCollider().GetWorldRect(*spear.actor);
+				d2d.DrawRectangle(overlayRenderTargetId, rect);
+			}
+		}
+
+		// player actor 렌더
+		if (isMoving)
+			playerActorRun->RenderToOverlay(d2d, windows);
+		else
+			playerActor->RenderToOverlay(d2d, windows);
+
 		if (showCollider)
-		{
-			D2D1_RECT_F rect = spear.actor->GetBoxCollider().GetWorldRect(*spear.actor);
-			d2d.DrawRectangle(overlayRenderTargetId, rect);
-		}
+			playerActor->RenderColliderToOverlay(d2d, windows);
+
+		spawnButtonManager.Render(d2d, windows, showCollider);
 	}
-
-	// isMoving에 따라 하나만 렌더
-	if (isMoving)
-		playerActorRun->RenderToOverlay(d2d, windows);
-	else
-		playerActor->RenderToOverlay(d2d, windows);
-
-	if (showCollider) {
-		playerActor->RenderColliderToOverlay(d2d, windows);
-		}
-	spawnButtonManager.Render(d2d, windows, showCollider);
 	d2d.EndDraw(overlayRenderTargetId);
 
 	auto* overlay = windows.GetOverlayWindow();
@@ -582,13 +658,19 @@ void GameContent::OnRender(EngineContext& engine)
 	}
 	
 
-	d2d.BeginDraw(player.GetPlayerFieldId());
-	d2d.Clear(player.GetPlayerFieldId(), D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f)); // blue
-	d2d.EndDraw(player.GetPlayerFieldId());
+	if (player.GetPlayerFieldId() != -1)
+	{
+		d2d.BeginDraw(player.GetPlayerFieldId());
+		d2d.Clear(player.GetPlayerFieldId(), D2D1::ColorF(0.0f, 0.0f, 1.0f, 1.0f)); // blue
+		d2d.EndDraw(player.GetPlayerFieldId());
+	}
 
-	d2d.BeginDraw(enemy.GetEnemyFieldId());
-	d2d.Clear(enemy.GetEnemyFieldId(), D2D1::ColorF(1.0f, 0.5f, 0.0f, 1.0f)); // orange
-	d2d.EndDraw(enemy.GetEnemyFieldId());
+	if (enemy.GetEnemyFieldId() != -1)
+	{
+		d2d.BeginDraw(enemy.GetEnemyFieldId());
+		d2d.Clear(enemy.GetEnemyFieldId(), D2D1::ColorF(1.0f, 0.5f, 0.0f, 1.0f)); // orange
+		d2d.EndDraw(enemy.GetEnemyFieldId());
+	}
 
 }
 
@@ -606,8 +688,10 @@ void GameContent::OnEnd(EngineContext& engine)
 
 	auto& d2d = engine.GetD2DManager();
 	d2d.RemoveRenderTarget(overlayRenderTargetId);
-	d2d.RemoveRenderTarget(player.GetPlayerFieldId());
-	d2d.RemoveRenderTarget(enemy.GetEnemyFieldId());
+	if (player.GetPlayerFieldId() != -1)
+		d2d.RemoveRenderTarget(player.GetPlayerFieldId());
+	if (enemy.GetEnemyFieldId() != -1)
+		d2d.RemoveRenderTarget(enemy.GetEnemyFieldId());
 }
 
 void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)

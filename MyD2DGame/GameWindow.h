@@ -80,6 +80,7 @@ public:
 		InputManager* inputManager
 	);
 	void DestroyWin();
+	void SetCloseAction(WindowCloseAction action) { closeAction = action; }
 
 	HWND  GetHwnd()    const;
 	int   GetID()      const;

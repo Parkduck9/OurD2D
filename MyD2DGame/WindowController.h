@@ -62,6 +62,20 @@ public:
 	// �ֿ� �¾������ ü�� �ٰ� �ϱ�
 	void ApplyFieldPenalty(float amount);
 	void ApplyFieldPenaltyOnly(float amount); // region 위치 변경 없이 field만 조정
+
+	// EnemyWin 조건: player field 높이 < player region 높이
+	bool IsPlayerFieldSmallerThanRegion() const;
+	// PlayerWin 조건: enemy field 높이 < enemy region 높이
+	bool IsEnemyFieldSmallerThanRegion() const;
+	// Battle 시작 시 fieldBoundary 리셋 (0.5 = 동일 크기로 시작)
+	void ResetFieldBoundary() { fieldBoundary = 0.5f; }
+	// 창 파괴
+	void DestroyPlayerFieldAndRegion(EngineContext& engine);
+	void DestroyEnemyFieldAndRegion(EngineContext& engine);
+	// 전체화면 확장
+	void ExpandEnemyWindowsFull();
+	void ExpandPlayerWindowsFull();
+
 private :
 	// windowId -> targetX,targetY -> speed Move function (windowId -> wnd -> move)
 	void MoveToward(int wndId, float targetX, float targetY, float speed, float deltaTime);

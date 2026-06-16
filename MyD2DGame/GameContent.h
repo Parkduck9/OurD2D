@@ -130,4 +130,8 @@ private:
 	float returnRegionT = 1.0f;
 	float returnFieldT = 1.0f;
 	bool regionShrinkFinished = false;
+
+	// Battle 승패 플래그 (Return 애니메이션 후 처리)
+	bool playerFieldLost = false;
+	bool enemyFieldLost = false;
 };
