@@ -6,6 +6,7 @@
 #include "BattleState.h" // Battle State Enum
 #include "SpriteAnimation.h" // Sprite Animation 
 #include "SpawnButtonManager.h"
+#include "AudioManager.h"
 
 #include <d2d1.h> //D2D
 #include<wrl/client.h> // Comptr
@@ -95,6 +96,9 @@ private:
 
 	//버튼 스폰 매니저
 	SpawnButtonManager spawnButtonManager;
+
+	//사운드 매니저
+	AudioManager audiomanger;
 
 	//액터 임시 변수(삭제 예정)
 	std::vector<std::unique_ptr<Actor>> actors;

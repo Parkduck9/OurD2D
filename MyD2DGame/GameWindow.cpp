@@ -3,8 +3,7 @@
 #include "InputManager.h"
 
 
-bool GameWindow::Create(
-						HINSTANCE hInstance,
+bool GameWindow::Create(HINSTANCE hInstance,
 						const wchar_t* title,
 						int	id,
 						const WindowCreateInfo& info,
@@ -21,7 +20,7 @@ bool GameWindow::Create(
 	this->closeAction = info.closeAction;
 	m_hwnd = CreateWindowEx(
 							0,  title,info.title.c_str(),
-							WS_POPUP | WS_BORDER | WS_DLGFRAME,
+							WS_POPUP | WS_CAPTION | WS_DLGFRAME,
 							info.x, info.y,
 							info.width, info.height,
 							nullptr, nullptr,
