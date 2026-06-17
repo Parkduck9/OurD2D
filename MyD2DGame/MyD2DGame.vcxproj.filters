@@ -75,6 +75,12 @@
     <ClCompile Include="SpwnButtonManager.cpp">
       <Filter>Contents\소스파일</Filter>
     </ClCompile>
+    <ClCompile Include="AudioManager.cpp">
+      <Filter>Engine\소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\SceneManager.cpp">
+      <Filter>Contents\소스파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameWindow.h">
@@ -126,6 +132,12 @@
       <Filter>Engine\헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SpawnButtonManager.h">
+      <Filter>Contents\헤더파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioManager.h">
+      <Filter>Engine\헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\SceneManager.h">
       <Filter>Contents\헤더파일</Filter>
     </ClInclude>
   </ItemGroup>
