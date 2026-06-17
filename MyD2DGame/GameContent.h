@@ -7,6 +7,7 @@
 #include "SpriteAnimation.h" // Sprite Animation 
 #include "SpawnButtonManager.h"
 #include "AudioManager.h"
+#include "SceneManager.h"
 
 #include <d2d1.h> //D2D
 #include<wrl/client.h> // Comptr
@@ -74,8 +75,6 @@ private:
 	BattleState state = BattleState::Start; // 배틀 상태
 
 	void RestartToStart(EngineContext& engine);
-	bool IsRestartPressed();
-	void ShowGameOverImage(EngineContext& engine, bool playerWin);
 
 
 	float battleExpandT = 0.0f; // Battle field expansion timer (0~1)
@@ -132,11 +131,9 @@ private:
 	float playerVelX = 0.0f; // 플레이어 이동 속도 추정 X
 	float playerVelY = 0.0f; // 플레이어 이동 속도 추정 Y
 
-	Actor* titleActor = nullptr;
-	Actor* startActor = nullptr;
-	Actor* restartActor = nullptr;
+	SceneManager sceneManager;
+	bool endingStarted = false;
 
-	std::unique_ptr<Actor> gameOverActor;
 
 	// 멤버 변수
 	float returnRegionT = 1.0f;
@@ -184,5 +181,4 @@ private:
 
 
 
-	bool restartKeyWasDown = false;
 };

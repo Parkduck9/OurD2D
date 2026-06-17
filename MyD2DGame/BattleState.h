@@ -4,6 +4,7 @@
 enum class BattleState
 {
     Start,        // START SCENE
+    Intro,        // Intro cutscene (0~4.png, 1.5s each)
     Explore,      // Explore (Player)
 	MoveToBattle, // Move to Battle (Transition Player,Enemy Region)
     ExpandBattle, // Battle Field Expanding

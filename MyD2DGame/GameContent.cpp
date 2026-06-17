@@ -1,4 +1,5 @@
 ﻿#include "GameContent.h"
+#include "SceneManager.h"
 #include "EngineContext.h"
 #include "WindowManager.h"
 
@@ -71,19 +72,8 @@ void GameContent::OnStart(EngineContext& engine)
 	d2d.CreateRenderTargetForOverlayDC(overlayRenderTargetId, overlay->GetMemoryDC(), overlay->GetWidth(), overlay->GetHeight());
 
 
-	//타이틀 렌더
-	auto TitleActor = std::make_unique<Actor>(overlayRenderTargetId);
-	auto StartActor = std::make_unique<Actor>(overlayRenderTargetId);
-	float titleW = 1500.0f;
-	float titleH = 510.0f;
-
-	float titlex = (width - titleW) * 0.5f;
-	float titley = (height - titleH) * 0.5f;
-	TitleActor->InitializeSprite(engine,L"../Resource/Title.png",titlex,titley,titleW,titleH);
-	StartActor->InitializeSprite(engine, L"../Resource/StartText.png", titlex, titley + titleH, 677, 369);
-
-	titleActor = TitleActor.get();
-	startActor = StartActor.get();
+	// 씬 매니저 초기화 (Title + Intro)
+	sceneManager.Initialize(engine, overlayRenderTargetId, player.GetPlayerRegionId());
 
 
 	//투명창에 적 생성
@@ -134,8 +124,6 @@ void GameContent::OnStart(EngineContext& engine)
 	actors.push_back(std::move(enemyActor));
 	actors.push_back(std::move(enemyActorWalkPtr));
 
-	actors.push_back(std::move(TitleActor));
-	actors.push_back(std::move(StartActor));
 
 
 
@@ -165,11 +153,12 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
 
-	//리스타트 상태
-	if ((state == BattleState::EnemyWin || state == BattleState::PlayerWin) &&
-		IsRestartPressed())
+	// 엔딩 씬 업데이트
+	if (sceneManager.IsEnding())
 	{
-		RestartToStart(engine);
+		sceneManager.Update(engine, deltaTime);
+		if (sceneManager.IsRestartRequested())
+			RestartToStart(engine);
 		return;
 	}
 
@@ -179,12 +168,28 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		showCollider = !showCollider;
 	}
 
-	if (state == BattleState::Start &&
-		input.IsKeyPressed(player.GetPlayerRegionId(), VK_SPACE))
+	// 즉시 패배 (,)
+	if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_OEM_COMMA) &&
+		(state == BattleState::Explore || state == BattleState::Battle))
 	{
-		actors.pop_back();
-		actors.pop_back();
-		state = BattleState::Explore;
+		oranges.clear(); spears.clear(); spawnButtonManager.Clear(); ClearDrivingObjects();
+		state = BattleState::EnemyWin;
+	}
+
+	// 즉시 승리 (.)
+	if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_OEM_PERIOD) &&
+		(state == BattleState::Explore || state == BattleState::Battle))
+	{
+		oranges.clear(); spears.clear(); spawnButtonManager.Clear(); ClearDrivingObjects();
+		state = BattleState::PlayerWin;
+	}
+
+	if (state == BattleState::Start || state == BattleState::Intro)
+	{
+		sceneManager.Update(engine, deltaTime);
+		if (sceneManager.IsFinished())
+			state = BattleState::Explore;
+		return;
 	}
 	switch (state) {
 	case BattleState::Explore:
@@ -263,8 +268,6 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		{
 			spawnButtonManager.Clear();
 			oranges.clear();
-			player.DestroyPlayerFieldAndRegion(engine);
-			enemy.ExpandEnemyWindowsFull();
 			state = BattleState::EnemyWin;
 		}
 
@@ -625,15 +628,11 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 			if (playerFieldLost)
 			{
 				playerFieldLost = false;
-				player.DestroyPlayerFieldAndRegion(engine);
-				enemy.ExpandEnemyWindowsFull();
 				state = BattleState::EnemyWin;
 			}
 			else if (enemyFieldLost)
 			{
 				enemyFieldLost = false;
-				enemy.DestroyEnemyFieldAndRegion(engine);
-				player.ExpandPlayerWindowsFull();
 				state = BattleState::PlayerWin;
 			}
 			else
@@ -644,17 +643,21 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 
 	case BattleState::EnemyWin:
-		// enemy region/field만 남아서 Explore처럼 튕겨다님
-		UpdateEnemyExplore(engine, deltaTime);
-		ShowGameOverImage(engine, false);
+		if (!endingStarted)
+		{
+			endingStarted = true;
+			sceneManager.StartEnding(engine, false, enemy.GetEnemyRegionId());
+		}
 		break;
 
 	case BattleState::PlayerWin:
-		// player region/field만 남아서 플레이어 계속 조작 가능
-		// DefaultFieldSystem 호출 안 함 → field 크기 고정 (더 안 줄어듦)
 		player.MovePlayerRegion(deltaTime);
 		MovePlayerActor(engine, deltaTime, 50.0f);
-		ShowGameOverImage(engine, true);
+		if (!endingStarted)
+		{
+			endingStarted = true;
+			sceneManager.StartEnding(engine, true, player.GetPlayerRegionId());
+		}
 		break;
 	}
 	// actor update
@@ -686,12 +689,19 @@ void GameContent::OnRender(EngineContext& engine)
 	bool enemyWindowsAlive = (state != BattleState::PlayerWin);
 	bool playerWindowsAlive = (state != BattleState::EnemyWin);
 
+	bool isTitleOrIntro = (state == BattleState::Start || state == BattleState::Intro);
+	bool isEndingScene  = sceneManager.IsEndingImageShowing();
+
 	for (auto& actor : actors)
 	{
 		if (actor.get() == playerActor || actor.get() == playerActorRun) continue;
 
 		bool isEnemyActor = (actor.get() == enemyActor || actor.get() == enemyActorWalk);
 		if (isEnemyActor && !enemyWindowsAlive) continue;
+
+		// Title/Intro 중에는 플레이어·적 액터 숨김
+		if (isTitleOrIntro && isEnemyActor) continue;
+		if (isEndingScene && isEnemyActor) continue;
 
 		if (isExploreLike && actor.get() == enemyActor) continue;
 		if (!isExploreLike && actor.get() == enemyActorWalk) continue;
@@ -702,13 +712,13 @@ void GameContent::OnRender(EngineContext& engine)
 			actor->RenderColliderToOverlay(d2d, windows);
 	}
 
-	if (gameOverActor != nullptr &&
-		(state == BattleState::EnemyWin || state == BattleState::PlayerWin))
+	if (state == BattleState::Start || state == BattleState::Intro
+		|| sceneManager.IsEnding())
 	{
-		gameOverActor->RenderToOverlay(d2d, windows);
+		sceneManager.Render(d2d, windows);
 	}
 
-	if (playerWindowsAlive)
+	if (playerWindowsAlive && !isTitleOrIntro && !isEndingScene)
 	{
 		for (auto& orange : oranges)
 		{
@@ -1317,17 +1327,9 @@ void GameContent::UpdateDrivingCar(EngineContext& engine, float deltaTime)
     }
 }
 
-bool GameContent::IsRestartPressed()
-{
-	bool down = (GetAsyncKeyState(VK_F5) & 0X8000) != 0;
-	bool pressed = down && !restartKeyWasDown;
-	restartKeyWasDown = down;
-	return pressed;
-}
+
 void GameContent::RestartToStart(EngineContext& engine)
 {
-	gameOverActor.reset();
-	
 	oranges.clear();
 	spears.clear();
 	spawnButtonManager.Clear();
@@ -1362,31 +1364,9 @@ void GameContent::RestartToStart(EngineContext& engine)
 	playerFieldLost = false;
 	enemyFieldLost = false;
 	isMoving = false;
-
+	endingStarted = false;
 	state = BattleState::Start;
 
 	OnStart(engine);
 }
 
-void GameContent::ShowGameOverImage(EngineContext& engine, bool playerWin)
-{
-	auto* overlay = engine.GetWindowManager().GetOverlayWindow();
-	if (overlay == nullptr) return;
-
-	float imageW = 1000.0f;
-	float imageH = 500.0f;
-
-	float x = (overlay->GetWidth() - imageW) * 0.5f;
-	float y = (overlay->GetHeight() - imageH) * 0.5f;
-
-	gameOverActor = std::make_unique<Actor>(overlayRenderTargetId);
-
-	gameOverActor->InitializeSprite(
-		engine,
-		playerWin ? L"../Resource/GuGuWin_1.png" : L"../Resource/DororongWin.png",
-		x,
-		y,
-		imageW,
-		imageH
-	);
-}
