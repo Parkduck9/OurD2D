@@ -30,7 +30,7 @@ public:
 
 
 	// Create MovePlayerRegion function
-	void MovePlayerRegion(float deltatime);
+	bool MovePlayerRegion(float deltaTime, bool allowDash = false);
 
 	// player, enemy battle region move function
 	void BattleRegion(float deltaTime, int enemyRegionId);
@@ -107,5 +107,8 @@ protected:
 	
 	float fieldBoundary = 0.50f;  // ��輱 Y ���� (0~1), �� �ϳ��� �� �ʵ� ũ�� ����
 
-
+	bool dashActive = false;
+	float dashDirX = 0.0f;
+	float dashDirY = 0.0f;
+	float dashRemaining = 0.0f;
 };

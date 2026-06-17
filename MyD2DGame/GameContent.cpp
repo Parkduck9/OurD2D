@@ -195,7 +195,10 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	switch (state) {
 	case BattleState::Explore:
 		// playerMove for key
-		player.MovePlayerRegion(deltaTime);
+		if (player.MovePlayerRegion(deltaTime, true))
+		{
+			audiomanger.PlaySFX(L"../Resource/Dash.wav");
+		}
 		MovePlayerActor(engine, deltaTime, 50.0f);
 
 		player.DefaultFieldSystem(deltaTime);
@@ -332,8 +335,8 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		break;
 
 	case BattleState::PlayerWin:
-		player.MovePlayerRegion(deltaTime);
-		MovePlayerActor(engine, deltaTime, 50.0f);
+		player.MovePlayerRegion(deltaTime, true);
+		MovePlayerActor(engine, deltaTime, 50.0f, true);
 		if (!endingStarted)
 		{
 			endingStarted = true;
@@ -534,6 +537,7 @@ void GameContent::UpdateEnemyOranges(EngineContext& engine, float deltaTime)
 		if (isHit && !orange.hasHitPlayer)
 		{
 			orange.hasHitPlayer = true;
+			PlayerHitSound();
 
 			if (state == BattleState::Explore)
 			{
@@ -621,34 +625,80 @@ void GameContent::SpawnEnemyOrange(EngineContext& engine)
 	oranges.push_back(std::move(orange));
 }
 
-void GameContent::MovePlayerActor(EngineContext& engine, float deltaTime, float moveSpeed)
+void GameContent::MovePlayerActor(EngineContext& engine, float deltaTime, float moveSpeed, bool allowDash)
 {
 	auto& input = engine.GetInputManager();
+
+	float dirX = 0.0f;
+	float dirY = 0.0f;
 	bool moving = false;
 
-	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_UP))
+	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_UP))    dirY -= 1.0f;
+	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_DOWN))  dirY += 1.0f;
+	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_LEFT))  dirX -= 1.0f;
+	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_RIGHT)) dirX += 1.0f;
+
+	if (playerDashActive)
 	{
-		playerActor->Move(0, -moveSpeed * deltaTime); moving = true;
+		const float dashSpeed = 900.0f;
+		float moveDistance = dashSpeed * deltaTime;
+
+		if (moveDistance >= playerDashRemaining)
+		{
+			moveDistance = playerDashRemaining;
+			playerDashActive = false;
+			playerDashRemaining = 0.0f;
+		}
+		else
+		{
+			playerDashRemaining -= moveDistance;
+		}
+
+		playerActor->Move(
+			playerDashDirX * moveDistance,
+			playerDashDirY * moveDistance
+		);
+
+		moving = true;
 	}
-	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_DOWN))
+	else
 	{
-		playerActor->Move(0, moveSpeed * deltaTime); moving = true;
-	}
-	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_LEFT))
-	{
-		playerActorRun->SetFlipx(false);
-		playerActor->Move(-moveSpeed * deltaTime, 0); moving = true;
+		if (dirX != 0.0f || dirY != 0.0f)
+		{
+			float length = std::sqrt(dirX * dirX + dirY * dirY);
+			dirX /= length;
+			dirY /= length;
+
+			if (allowDash && input.IsKeyPressed(player.GetPlayerRegionId(), VK_SHIFT))
+			{
+				playerDashActive = true;
+				playerDashDirX = dirX;
+				playerDashDirY = dirY;
+				playerDashRemaining = 180.0f;
+
+				audiomanger.PlaySFX(L"../Resource/Dash.wav");
+			}
+			else
+			{
+				playerActor->Move(
+					dirX * moveSpeed * deltaTime,
+					dirY * moveSpeed * deltaTime
+				);
+			}
+
+			moving = true;
+
+			if (dirX < 0.0f)
+				playerActorRun->SetFlipx(false);
+			else if (dirX > 0.0f)
+				playerActorRun->SetFlipx(true);
+		}
 	}
 
-	if (input.IsKeyDown(player.GetPlayerRegionId(), VK_RIGHT))
-	{
-		playerActorRun->SetFlipx(true);
-		playerActor->Move(moveSpeed * deltaTime, 0); moving = true;
-	}
 	isMoving = moving;
 	playerActorRun->SetPosition(playerActor->GetTransform().x, playerActor->GetTransform().y);
 
-	// 클램핑
+	// 기존 클램핑
 	auto& windows = engine.GetWindowManager();
 	auto* playerWnd = windows.GetWindowById(player.GetPlayerRegionId());
 	if (playerWnd == nullptr) return;
@@ -668,11 +718,11 @@ void GameContent::MovePlayerActor(EngineContext& engine, float deltaTime, float 
 	float clampedY = max(0.0f, min(playerActor->GetTransform().y, maxY));
 
 	playerActor->SetPosition(clampedX, clampedY);
+	playerActorRun->SetPosition(clampedX, clampedY);
 }
-
 void GameContent::PlayerHitSound()
 {
-	PlaySound(L"../Resource/Shock The World.wav", nullptr, SND_FILENAME | SND_ASYNC);
+	PlaySound(L"../Resource/HpDecrease.wav", nullptr, SND_FILENAME | SND_ASYNC);
 }
 
 void GameContent::MoveEnemyActor(EngineContext& engine, float deltaTime)
@@ -983,6 +1033,8 @@ void GameContent::UpdateDrivingCar(EngineContext& engine, float deltaTime)
 
     if (hit)
     {
+		PlayerHitSound();
+
         player.ApplyFieldPenalty(0.07f);
         enemy.ApplyFieldPenalty(0.07f);
         ClearDrivingObjects();
@@ -1274,7 +1326,7 @@ void GameContent::UpdateBattle(EngineContext& engine, float deltaTime)
 	}
 
 	CenterEnemyActor(engine, deltaTime);
-	MovePlayerActor(engine, deltaTime, 200.0f);
+	MovePlayerActor(engine, deltaTime, 200.0f, true);
 
 	if (input.IsKeyPressed(player.GetPlayerRegionId(), 'Z'))
 	{

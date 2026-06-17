@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "GameWindow.h"
 #include "InputManager.h"
-
+#include <cmath>
 
 bool GameWindow::Create(HINSTANCE hInstance,
 						const wchar_t* title,
@@ -277,6 +277,31 @@ void GameWindow::MoveWindow(float XRatio, float YRatio, float Speed, float delta
 	isMovingByCode = false;
 
 }
+
+void GameWindow::MoveWindowByPixels(float offsetX, float offsetY)
+{
+	float nextX = x + offsetX;
+	float nextY = y + offsetY;
+
+	isMovingByCode = true;
+
+	if (SetWindowPos(
+		m_hwnd,
+		nullptr,
+		static_cast<int>(std::round(nextX)),
+		static_cast<int>(std::round(nextY)),
+		0,
+		0,
+		SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE))
+	{
+		x = nextX;
+		y = nextY;
+		UpdateClientCacheFromStoreRect();
+	}
+
+	isMovingByCode = false;
+}
+
 void GameWindow::ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRatio, double XRatio, double YRatio)
 {
 	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);

@@ -3,6 +3,7 @@
 #include "WindowManager.h"   
 #include "InputManager.h"
 #include "D2DManager.h"
+#include <cmath>
 
 //EngineContext save reference
 void WindowController::Initialize(EngineContext &engine)
@@ -183,45 +184,76 @@ void WindowController::RestoreRegionsFromBattle()
 
 
 // Input key -> Player region Move
-void WindowController::MovePlayerRegion(float deltaTime)
+bool WindowController::MovePlayerRegion(float deltaTime, bool allowDash)
 {
     auto& input = context->GetInputManager();
     auto& windows = context->GetWindowManager();
-   /* if (input.IsKeyPressed(playerRegionId, VK_LEFT))
-    {
-        int playerFieldId = windows.CreateGameWindow(
-            {
-                L"Add Window",
-                x, y,
-                0.2, 0.2
-            }
-        );
-        x  += 0.01; y+= 0.01;
-    }*/
-    
-    if (input.IsKeyDown(playerRegionId, VK_UP))
-    {
-        windows.GetWindowById(playerRegionId)->MoveWindow(0.0, -0.15, 1.3, deltaTime);
-    }
-    if (input.IsKeyDown(playerRegionId, VK_DOWN))
-    {
-        windows.GetWindowById(playerRegionId)->MoveWindow(0.0, 0.15, 1.3, deltaTime);
-    }
-    if (input.IsKeyDown(playerRegionId, VK_LEFT))
-    {
-        windows.GetWindowById(playerRegionId)->MoveWindow(-0.15, 0, 1.3, deltaTime);
-    }
-    if (input.IsKeyDown(playerRegionId, VK_RIGHT))
-    {
-        windows.GetWindowById(playerRegionId)->MoveWindow(0.15, 0.0, 1.3, deltaTime);
-    }
-    if (input.IsKeyDown(playerRegionId, VK_ESCAPE))
-    {
-        windows.GetWindowById(playerRegionId)->DestroyWin();
-    }
-   
-}
 
+    auto* playerWnd = windows.GetWindowById(playerRegionId);
+    if (playerWnd == nullptr) return false;
+
+    if (dashActive)
+    {
+        const float dashSpeed = 900.0f;
+        float moveDistance = dashSpeed * deltaTime;
+
+        if (moveDistance >= dashRemaining)
+        {
+            moveDistance = dashRemaining;
+            dashActive = false;
+            dashRemaining = 0.0f;
+        }
+        else
+        {
+            dashRemaining -= moveDistance;
+        }
+
+        playerWnd->MoveWindowByPixels(
+            dashDirX * moveDistance,
+            dashDirY * moveDistance
+        );
+
+        return false;
+    }
+
+    float dirX = 0.0f;
+    float dirY = 0.0f;
+
+    if (input.IsKeyDown(playerRegionId, VK_UP))    dirY -= 1.0f;
+    if (input.IsKeyDown(playerRegionId, VK_DOWN))  dirY += 1.0f;
+    if (input.IsKeyDown(playerRegionId, VK_LEFT))  dirX -= 1.0f;
+    if (input.IsKeyDown(playerRegionId, VK_RIGHT)) dirX += 1.0f;
+
+    if (dirX == 0.0f && dirY == 0.0f)
+        return false;
+
+    float length = std::sqrt(dirX * dirX + dirY * dirY);
+    dirX /= length;
+    dirY /= length;
+
+    if (allowDash && input.IsKeyPressed(playerRegionId, VK_SHIFT))
+    {
+        dashActive = true;
+        dashDirX = dirX;
+        dashDirY = dirY;
+        dashRemaining = 180.0f;
+        return true;
+    }
+
+    const float moveRatio = 0.15f;
+    const float moveSpeed = 1.3f;
+
+    if (input.IsKeyDown(playerRegionId, VK_UP))
+        playerWnd->MoveWindow(0.0f, -moveRatio, moveSpeed, deltaTime);
+    if (input.IsKeyDown(playerRegionId, VK_DOWN))
+        playerWnd->MoveWindow(0.0f, moveRatio, moveSpeed, deltaTime);
+    if (input.IsKeyDown(playerRegionId, VK_LEFT))
+        playerWnd->MoveWindow(-moveRatio, 0.0f, moveSpeed, deltaTime);
+    if (input.IsKeyDown(playerRegionId, VK_RIGHT))
+        playerWnd->MoveWindow(moveRatio, 0.0f, moveSpeed, deltaTime);
+
+    return false;
+}
 // player,enemy region wnd -> change(player, enemy)
 void WindowController::BattleRegion(float deltaTime, int enemyRegionId)
 {

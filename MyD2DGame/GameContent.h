@@ -92,8 +92,11 @@ private:
 	int overlayRenderTargetId = 0;
 
 	// 플레이어 리소스 움직이기
-	void MovePlayerActor(EngineContext& engine, float deltaTime, float moveSpeed);
-
+	void MovePlayerActor(EngineContext& engine, float deltaTime, float moveSpeed, bool allowDash = false);
+	bool playerDashActive = false;
+	float playerDashDirX = 0.0f;
+	float playerDashDirY = 0.0f;
+	float playerDashRemaining = 0.0f;
 	// Battle 종료 시 돌아올 위치 (마우가) 
 	float battleStartX = 0.0f;
 	float battleStartY = 0.0f;

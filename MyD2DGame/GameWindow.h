@@ -100,8 +100,7 @@ public:
 
 
 	void ResizeWindowToMonitorRatio(HWND hwnd, double widthRatio, double heightRaio, double XRatio, double YRatio);
-
-
+	void MoveWindowByPixels(float offsetX, float offsetY);
 private:
 	HWND	  m_hwnd=nullptr;
 	HINSTANCE m_hInstance;
