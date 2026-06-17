@@ -24,6 +24,7 @@ public:
 
 
 private:
+
 	struct EnemyOrange // 도로롱 귤 구조체
 	{
 		std::unique_ptr<Actor> actor;
@@ -185,4 +186,22 @@ private:
 
 
 	bool restartKeyWasDown = false;
+
+
+	//상태 함수들
+	void UpdateStart		(EngineContext& engine, float delatTime);
+	void UpdateExplore		(EngineContext& engine, float deltaTime);
+	void UpdateMoveToBattle (EngineContext& engine, float deltaTime);
+	void UpdateExpandBattle (EngineContext& engine, float deltaTime);
+	void UpdateBattle		(EngineContext& engine, float deltaTime);
+	void UpdateReturnCenter (EngineContext& engine, float deltaTime);
+	void UpdateReturn		(EngineContext& engine, float deltaTime);
+	void UpdateReturnExplore(EngineContext& engine, float deltaTime);
+	void UpdateEnemyWin		(EngineContext& engine, float deltaTime);
+	void UpdatePlayerWin	(EngineContext& engine, float deltaTime);
+
+	void UpdateActors(float deltaTime);
+
+	//컨텍스트
+	EngineContext* context = nullptr;
 };
