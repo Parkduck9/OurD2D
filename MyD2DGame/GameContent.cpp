@@ -17,6 +17,21 @@
 
 void GameContent::OnStart(EngineContext& engine)
 {
+
+	//주모니터 좌표
+	POINT pt{ 0, 0 };
+	HMONITOR hMon = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+
+	MONITORINFO mi = {};
+	mi.cbSize = sizeof(MONITORINFO);
+	GetMonitorInfo(hMon, &mi);
+
+	float x = mi.rcMonitor.left;
+	float y = mi.rcMonitor.top;
+	float width = mi.rcMonitor.right - mi.rcMonitor.left;
+	float height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+
 	player.Initialize(engine);
 	enemy.Initialize(engine);
 	// 플레이어와 적 객체 생성 (refrence)
@@ -44,6 +59,7 @@ void GameContent::OnStart(EngineContext& engine)
 	auto* playerWnd = windows.GetWindowById(player.GetPlayerRegionId());
 	auto* enemyWnd = windows.GetWindowById(enemy.GetEnemyRegionId());
 
+
 	//d2d.CreateRenderTargetForWindow(player.GetPlayerRegionId(), playerWnd->GetHwnd());
 	//d2d.CreateRenderTargetForWindow(enemy.GetEnemyRegionId(), enemyWnd->GetHwnd());
 	//투명창 생성
@@ -53,6 +69,21 @@ void GameContent::OnStart(EngineContext& engine)
 	overlayRenderTargetId = windows.GetOverlayRenderTargetId();
 	//투명창에 렌더타겟 생성
 	d2d.CreateRenderTargetForOverlayDC(overlayRenderTargetId, overlay->GetMemoryDC(), overlay->GetWidth(), overlay->GetHeight());
+
+
+	//타이틀 렌더
+	auto TitleActor = std::make_unique<Actor>(overlayRenderTargetId);
+	auto StartActor = std::make_unique<Actor>(overlayRenderTargetId);
+	float titleW = 1500.0f;
+	float titleH = 510.0f;
+
+	float titlex = (width - titleW) * 0.5f;
+	float titley = (height - titleH) * 0.5f;
+	TitleActor->InitializeSprite(engine,L"../Resource/Title.png",titlex,titley,titleW,titleH);
+	StartActor->InitializeSprite(engine, L"../Resource/StartText.png", titlex, titley + titleH, 677, 369);
+
+	titleActor = TitleActor.get();
+	startActor = StartActor.get();
 
 
 	//투명창에 적 생성
@@ -103,6 +134,10 @@ void GameContent::OnStart(EngineContext& engine)
 	actors.push_back(std::move(enemyActor));
 	actors.push_back(std::move(enemyActorWalkPtr));
 
+	actors.push_back(std::move(TitleActor));
+	actors.push_back(std::move(StartActor));
+
+
 
 	//스폰 매니저
 	spawnButtonManager.Initialize(
@@ -122,19 +157,35 @@ void GameContent::OnStart(EngineContext& engine)
 	{
 		MessageBoxW(nullptr, L"BGM 재생 실패", L"Audio Error", MB_OK);
 	}
+
+
 }
 
 void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 {
 	auto& input = engine.GetInputManager();
 
+	//리스타트 상태
+	if ((state == BattleState::EnemyWin || state == BattleState::PlayerWin) &&
+		IsRestartPressed())
+	{
+		RestartToStart(engine);
+		return;
+	}
+
 	//콜라이더 온오프
 	if (input.IsKeyPressed(player.GetPlayerRegionId(), VK_F1))
 	{
 		showCollider = !showCollider;
-		//audiomanger.PlayBGM(L"../Resource/평시.wav");
 	}
 
+	if (state == BattleState::Start &&
+		input.IsKeyPressed(player.GetPlayerRegionId(), VK_SPACE))
+	{
+		actors.pop_back();
+		actors.pop_back();
+		state = BattleState::Explore;
+	}
 	switch (state) {
 	case BattleState::Explore:
 		// playerMove for key
@@ -595,6 +646,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 	case BattleState::EnemyWin:
 		// enemy region/field만 남아서 Explore처럼 튕겨다님
 		UpdateEnemyExplore(engine, deltaTime);
+		ShowGameOverImage(engine, false);
 		break;
 
 	case BattleState::PlayerWin:
@@ -602,6 +654,7 @@ void GameContent::OnUpdate(EngineContext& engine, float deltaTime)
 		// DefaultFieldSystem 호출 안 함 → field 크기 고정 (더 안 줄어듦)
 		player.MovePlayerRegion(deltaTime);
 		MovePlayerActor(engine, deltaTime, 50.0f);
+		ShowGameOverImage(engine, true);
 		break;
 	}
 	// actor update
@@ -647,6 +700,12 @@ void GameContent::OnRender(EngineContext& engine)
 
 		if (showCollider && playerWindowsAlive && enemyWindowsAlive)
 			actor->RenderColliderToOverlay(d2d, windows);
+	}
+
+	if (gameOverActor != nullptr &&
+		(state == BattleState::EnemyWin || state == BattleState::PlayerWin))
+	{
+		gameOverActor->RenderToOverlay(d2d, windows);
 	}
 
 	if (playerWindowsAlive)
@@ -1256,4 +1315,78 @@ void GameContent::UpdateDrivingCar(EngineContext& engine, float deltaTime)
             drivingCar.actor   = nullptr;
         }
     }
+}
+
+bool GameContent::IsRestartPressed()
+{
+	bool down = (GetAsyncKeyState(VK_F5) & 0X8000) != 0;
+	bool pressed = down && !restartKeyWasDown;
+	restartKeyWasDown = down;
+	return pressed;
+}
+void GameContent::RestartToStart(EngineContext& engine)
+{
+	gameOverActor.reset();
+	
+	oranges.clear();
+	spears.clear();
+	spawnButtonManager.Clear();
+	ClearDrivingObjects();
+
+	actors.clear();
+
+	playerActor = nullptr;
+	playerActorRun = nullptr;
+	enemyActor = nullptr;
+	enemyActorWalk = nullptr;
+
+	auto& d2d = engine.GetD2DManager();
+
+	if (player.GetBattleFieldId() != -1)
+	{
+		d2d.RemoveRenderTarget(player.GetBattleFieldId());
+		player.DestroyBattleField();
+	}
+
+	player.DestroyPlayerFieldAndRegion(engine);
+	enemy.DestroyEnemyFieldAndRegion(engine);
+
+	d2d.RemoveRenderTarget(overlayRenderTargetId);
+
+	player = WindowController{};
+	enemy = WindowController{};
+
+	battleExpandT = 0.0f;
+	battleTimer = 0.0f;
+	battleFieldCreated = false;
+	playerFieldLost = false;
+	enemyFieldLost = false;
+	isMoving = false;
+
+	state = BattleState::Start;
+
+	OnStart(engine);
+}
+
+void GameContent::ShowGameOverImage(EngineContext& engine, bool playerWin)
+{
+	auto* overlay = engine.GetWindowManager().GetOverlayWindow();
+	if (overlay == nullptr) return;
+
+	float imageW = 1000.0f;
+	float imageH = 500.0f;
+
+	float x = (overlay->GetWidth() - imageW) * 0.5f;
+	float y = (overlay->GetHeight() - imageH) * 0.5f;
+
+	gameOverActor = std::make_unique<Actor>(overlayRenderTargetId);
+
+	gameOverActor->InitializeSprite(
+		engine,
+		playerWin ? L"../Resource/GuGuWin_1.png" : L"../Resource/DororongWin.png",
+		x,
+		y,
+		imageW,
+		imageH
+	);
 }

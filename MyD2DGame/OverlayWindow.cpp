@@ -21,8 +21,8 @@ bool OverlayWindow::Create(HINSTANCE hInstance)
 	}
 
 	//그냥 시스템상 주모니터에서 가져옴
-	x = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	x = 0;
+	y = 0;
 	width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
