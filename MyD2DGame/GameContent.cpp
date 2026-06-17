@@ -1,5 +1,5 @@
 ﻿#include "GameContent.h"
-#include "SceneManager.h"
+#include "Content/SceneManager.h"
 #include "EngineContext.h"
 #include "WindowManager.h"
 

@@ -1,5 +1,5 @@
 #include "SceneManager.h"
-#include "InputManager.h"
+#include "../InputManager.h"
 #include <Windows.h>
 
 // 주 모니터 기준 overlay 상대 좌표 + 크기 반환 (x, y, w, h → rect 형식으로 재사용)

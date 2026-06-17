@@ -1,8 +1,8 @@
 #pragma once
-#include "Actor.h"
-#include "EngineContext.h"
-#include "D2DManager.h"
-#include "WindowManager.h"
+#include "../Actor.h"
+#include "../EngineContext.h"
+#include "../D2DManager.h"
+#include "../WindowManager.h"
 #include <memory>
 
 enum class ScenePhase

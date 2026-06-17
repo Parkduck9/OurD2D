@@ -7,7 +7,7 @@
 #include "SpriteAnimation.h" // Sprite Animation 
 #include "SpawnButtonManager.h"
 #include "AudioManager.h"
-#include "SceneManager.h"
+#include "Content/SceneManager.h"
 
 #include <d2d1.h> //D2D
 #include<wrl/client.h> // Comptr
