@@ -236,7 +236,8 @@ void SceneManager::AdvanceIntro(EngineContext& engine)
         L"../Resource/1.png",
         L"../Resource/2.png",
         L"../Resource/3.png",
-        L"../Resource/4.png"
+        L"../Resource/4.png",
+        L"../Resource/구가도로게임진짜완성.png"
     };
 
     float h = monH;

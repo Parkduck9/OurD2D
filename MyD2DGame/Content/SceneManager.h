@@ -44,7 +44,7 @@ private:
     std::unique_ptr<Actor> startActor;
     std::unique_ptr<Actor> introActor;
     int introIndex = 0;
-    static constexpr int introCount = 5;
+    static constexpr int introCount = 6;
     void AdvanceIntro(EngineContext& engine);
 
     // 엔딩
